@@ -1,0 +1,63 @@
+/* What the TV and the phones share. Hanken Grotesk ships with the pages (fonts/, SIL OFL). */
+@font-face {
+  font-family: "Hanken Grotesk";
+  src: url("fonts/hanken-grotesk-latin.woff2") format("woff2");
+  font-weight: 400 600;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* A quiz night in the lounge: bottle-green felt, cream card type, and one
+   colour per answer so the TV and the phones point at the same thing. */
+:root {
+  --bg: #11201B;
+  --panel: #192B24;
+  --raise: #213730;
+  --line: #2F453C;
+  --ink: #F3EDE0;
+  --muted: #A8B4AA;
+  --faint: #7D8C82;
+  --a: #E0684A;
+  --b: #3FA08F;
+  --c: #E1AE3C;
+  --d: #6F9BD3;
+  --on-colour: #10201A;
+  --font: "Hanken Grotesk", "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+
+/* Player colours, by the number the room hands out. */
+.p0 { --p: #E0684A; } .p1 { --p: #3FA08F; } .p2 { --p: #E1AE3C; } .p3 { --p: #6F9BD3; }
+.p4 { --p: #D97FA1; } .p5 { --p: #9BC25A; } .p6 { --p: #EE9446; } .p7 { --p: #5BC2D6; }
+.p8 { --p: #C9B48A; } .p9 { --p: #77CFA4; } .p10 { --p: #F0A08A; } .p11 { --p: #A8A85A; }
+.p12 { --p: #F2C59A; } .p13 { --p: #4FB5B0; } .p14 { --p: #B79BE0; } .p15 { --p: #B9C0B4; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-feature-settings: "tnum" 0;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+[hidden] { display: none !important; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* The four answers. */
+.opt-a { --o: var(--a); } .opt-b { --o: var(--b); } .opt-c { --o: var(--c); } .opt-d { --o: var(--d); }
+
+/* A player's name, in their colour. */
+.pname { color: var(--p); font-weight: 600; white-space: nowrap; }
+
+/* The time left, as a bar that drains. */
+.timer { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.timer i { display: block; height: 100%; width: 100%; background: var(--ink); transform-origin: left; }
+.timer.low i { background: var(--a); }
+
+.wordmark { font-weight: 600; letter-spacing: -.02em; }
+.wordmark b { color: var(--c); font-weight: 600; }

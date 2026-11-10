@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parlour</title>
+<meta name="description" content="Join a Parlour quiz on your phone.">
+<meta name="theme-color" content="#11201B">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="base.css?v=4">
+<link rel="stylesheet" href="play.css?v=8">
+</head>
+<body>
+<main id="app">
+
+  <form id="s-join" class="screen join" autocomplete="off" hidden>
+    <p class="wordmark"><span class="mark" aria-hidden="true"><i class="opt-a"></i><i class="opt-b"></i><i class="opt-c"></i><i class="opt-d"></i></span>Parlour</p>
+    <!-- A code from the link: shown, not asked for. Tap to type another. -->
+    <button class="room-line" id="f-room" type="button" hidden><span>Room</span><b class="num" id="f-room-code"></b><span class="change">Change</span></button>
+    <label class="field" id="f-code-field">
+      <span>Room code</span>
+      <input id="f-code" class="code-in num" maxlength="4" autocapitalize="characters" spellcheck="false" inputmode="text" enterkeyhint="next" placeholder="····">
+    </label>
+    <label class="field">
+      <input id="f-name" maxlength="14" autocapitalize="words" spellcheck="false" enterkeyhint="go" placeholder="Your name" aria-label="Your name">
+    </label>
+    <button class="btn primary" id="f-go" type="submit">Join</button>
+    <button class="btn" id="f-cancel" type="button" hidden>Cancel</button>
+    <p class="error" id="f-error" role="alert"></p>
+    <div class="foot">
+      <p class="small">Hosting? Open <strong id="host-link"></strong>/host on a computer.</p>
+      <nav class="legal" aria-label="Legal"><a href="https://teloone.au/apps/parlour/privacy/" rel="noreferrer">Privacy</a><span aria-hidden="true">·</span><a href="https://teloone.au/apps/parlour/terms/" rel="noreferrer">Terms</a></nav>
+    </div>
+  </form>
+
+  <section id="s-play" class="screen play" hidden>
+    <!-- Stays at the top when big text makes the page scroll: who you are, the time left, the remote. -->
+    <div class="head">
+      <header class="top">
+        <span class="me" id="me"></span>
+        <button class="remote-open" id="r-pause" type="button" data-r="pause" hidden>Pause</button>
+        <span class="score num" id="my-score"></span>
+      </header>
+      <!-- For the remote: the game is paused, and what to do about it. -->
+      <div class="pausebar" id="pausebar" hidden>
+        <div class="pause-do" id="pause-do">
+          <button class="btn primary" type="button" data-r="resume">Resume</button>
+          <button class="btn" type="button" data-r="skip">Next</button>
+          <button class="link" type="button" id="r-end">End game</button>
+        </div>
+        <div class="pause-do" id="pause-sure" hidden>
+          <span>End now and show the scores?</span>
+          <button class="btn primary" type="button" data-r="stop">End game</button>
+          <button class="link" type="button" id="r-keep">Cancel</button>
+        </div>
+      </div>
+      <div class="timer" id="timer" hidden><i></i></div>
+    </div>
+    <div class="stage" id="stage"></div>
+  </section>
+
+  <section id="s-gone" class="screen centre" hidden>
+    <p class="big-note" id="gone-note"></p>
+    <button class="btn primary" id="gone-again">Join another room</button>
+  </section>
+
+</main>
+<!-- The remote's topic picker. -->
+<dialog class="sheet" id="topics" aria-label="Topics">
+  <div class="sheet-head"><h2>Topics</h2><button class="link" type="button" id="topics-done">Done</button></div>
+  <div class="checks" id="topics-list"></div>
+</dialog>
+<p class="offline" id="offline" role="status" hidden>Reconnecting…</p>
+<!-- What just changed, for screen readers: the stage is redrawn under them. -->
+<p class="said" id="say" aria-live="polite"></p>
+<script src="shared.js?v=6"></script>
+<script src="play.js?v=10"></script>
+</body>
+</html>

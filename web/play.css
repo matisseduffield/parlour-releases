@@ -1,0 +1,207 @@
+/* The phone: one thing at a time, big enough to hit without looking twice. */
+html { font-size: 17px; }
+/* A tablet or a computer: a little bigger, still one column. */
+@media (min-width: 700px) and (min-height: 700px) { html { font-size: 19px; } }
+body { min-height: 100%; }
+#app { min-height: 100svh; display: flex; flex-direction: column; max-width: 34rem; margin: 0 auto; padding: max(1rem, env(safe-area-inset-top)) 1.1rem max(1.2rem, env(safe-area-inset-bottom)); }
+.screen { flex: 1; display: flex; flex-direction: column; }
+.centre { align-items: center; justify-content: center; text-align: center; gap: 1.2rem; }
+
+.wordmark { display: flex; align-items: center; gap: .5em; margin: 1.2rem 0 2rem; font-size: 1.7rem; }
+.mark { display: grid; grid-template-columns: 1fr 1fr; gap: .09em; width: .85em; height: .85em; }
+.mark i { background: var(--o); border-radius: .08em; }
+
+.btn {
+  border: 2px solid var(--line); background: transparent; border-radius: .6rem;
+  padding: .85rem 1.2rem; font-size: 1.1rem; font-weight: 600; min-height: 3.3rem;
+}
+.btn.primary { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.btn:disabled { opacity: .35; }
+.btn:focus-visible, .choice:focus-visible, .item:focus-visible, .keypad button:focus-visible, .link:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
+.link { background: none; border: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; padding: .6rem; margin-top: 1rem; }
+
+/* ---------- joining ---------- */
+.join { gap: 1rem; }
+.field { display: grid; gap: .4rem; }
+.field span { color: var(--muted); font-size: .95rem; }
+.field input {
+  width: 100%; border: 2px solid var(--line); background: var(--panel); border-radius: .6rem;
+  padding: .75rem .9rem; font-size: 1.3rem; outline: none;
+}
+.field input:focus { border-color: var(--ink); }
+.field input::placeholder { color: var(--faint); }
+.code-in { text-transform: uppercase; letter-spacing: .3em; font-weight: 600; font-size: 1.8rem !important; }
+.code-in::placeholder { color: var(--faint); letter-spacing: .3em; }
+.join .btn { margin-top: .6rem; }
+.error { color: var(--a); min-height: 1.3em; margin: 0; }
+/* The code from the link, as one line: tap to type another. */
+.room-line {
+  display: flex; align-items: baseline; gap: .6rem; min-height: 2.8rem; padding: .3rem 0; margin-bottom: -.2rem;
+  border: 0; background: none; font-size: 1.15rem; text-align: left;
+}
+.room-line span:first-child { color: var(--muted); }
+.room-line b { font-weight: 600; letter-spacing: .12em; }
+.room-line .change { margin-left: auto; color: var(--faint); font-size: .9rem; text-decoration: underline; text-underline-offset: 3px; }
+.room-line:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
+.foot { margin-top: auto; }
+.small { color: var(--faint); font-size: .9rem; margin: 0; line-height: 1.45; }
+.small strong { color: var(--muted); font-weight: 600; }
+.legal { display: flex; align-items: center; gap: .5rem; color: var(--faint); font-size: .8rem; }
+.legal a { padding: .55rem 0; color: var(--faint); text-decoration: none; }
+.legal a:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
+
+/* ---------- in the room ---------- */
+/* Name, Pause and the time left stay in view when big text makes the page scroll. */
+.head { position: sticky; top: 0; z-index: 2; background: var(--bg); padding-bottom: .2rem; }
+/* A long name keeps most of itself and pushes the rest onto a second line. */
+.top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .2rem .9rem; min-height: 2.4rem; }
+.me { display: flex; align-items: center; gap: .6rem; font-weight: 600; min-width: min(100%, 7em); }
+.me .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.top .score { font-weight: 600; color: var(--muted); }
+.top .score:not(:empty)::after { content: " pts"; font-weight: 400; color: var(--faint); }
+.play .timer { margin-top: .8rem; }
+.said { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.stage { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: .9rem; padding: 1.2rem 0 .4rem; text-align: center; }
+.stage.question { justify-content: flex-start; text-align: left; }
+.stage.question.locked { justify-content: center; text-align: center; }
+.stage.locked .picked, .stage.locked .mini-order { text-align: left; }
+.stage.question.is-paused { pointer-events: none; }
+.stage.question.is-paused > :not(.q-where) { opacity: .45; }
+.q-where b { color: var(--ink); font-weight: 600; }
+
+.kicker { margin: 0; color: var(--muted); font-size: 1rem; }
+.headline { margin: 0; font-size: 2.6rem; font-weight: 600; line-height: 1.1; letter-spacing: -.02em; }
+.sub { margin: 0; color: var(--muted); font-size: 1.05rem; line-height: 1.45; }
+.sub strong { color: var(--ink); }
+.unit { color: var(--muted); font-size: .55em; font-weight: 400; letter-spacing: 0; }
+
+.q-where { margin: 0; color: var(--faint); font-size: .9rem; }
+.q-text { margin: .2rem 0 .5rem; font-size: 1.3rem; font-weight: 600; line-height: 1.3; }
+.q-text.long { font-size: 1.15rem; }
+.q-text:focus { outline: none; }   /* focused for screen readers, not as something to press */
+
+/* Four answers, each its own colour, filling the bottom of the screen. */
+.choices { display: grid; gap: .65rem; margin-top: auto; }
+.choice, .item, .picked {
+  display: flex; align-items: center; gap: .85rem; width: 100%; min-height: clamp(3rem, 8.5svh, 4rem);
+  border: 1px solid var(--line); border-radius: .8rem;
+  background: var(--panel); padding: .55rem .9rem .55rem .6rem; text-align: left; font-size: 1.15rem; line-height: 1.25;
+  transition: transform .08s, background .15s, border-color .15s;
+}
+.choice:active, .item:active { background: var(--raise); border-color: var(--o); transform: scale(.985); }
+.letter {
+  flex: none; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: .55rem; font-size: 1.1rem;
+  background: var(--o); color: var(--on-colour); font-weight: 600;
+}
+.text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.picked { min-height: 3.6rem; text-align: left; border: 2px solid var(--o); }
+.answer-label { margin: .4rem 0 -.3rem; color: var(--muted); font-size: .9rem; text-align: left; }
+
+/* A number: big readout, a keypad. */
+.entry { display: flex; align-items: baseline; justify-content: center; gap: .4rem; margin: auto 0 .2rem; }
+.typed { font-size: 3rem; font-weight: 600; letter-spacing: -.02em; min-height: 1.2em; }
+.typed.empty { color: var(--faint); }
+.entry .unit { font-size: 1.2rem; }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+.keypad button { border: 0; border-radius: .6rem; background: var(--panel); min-height: clamp(2.6rem, 7svh, 3.6rem); font-size: 1.5rem; font-weight: 600; }
+.keypad button:active { background: var(--raise); }
+.lock { margin-top: .6rem; }
+
+/* Order: tap them in turn; each shows its place. */
+.order { display: grid; gap: .6rem; margin-top: auto; }
+.item .pos { flex: none; order: 3; margin-left: auto; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; border: 2px dashed var(--line); font-weight: 600; }
+.item.placed { background: var(--raise); border-color: var(--o); }
+.item.placed .pos { border: 0; background: var(--ink); color: var(--bg); }
+
+.mini-order { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; text-align: left; counter-reset: n; }
+.mini-order li { display: flex; align-items: center; gap: .7rem; background: var(--panel); border: 1px solid var(--line); border-radius: .7rem; padding: .45rem .7rem; counter-increment: n; }
+.mini-order li::before { content: counter(n); width: 1.2rem; color: var(--muted); font-weight: 600; }
+.mini-order .letter { width: 1.7rem; height: 1.7rem; font-size: .9rem; }
+.mini-order li.ok { border-color: var(--b); }
+.mini-order li.ok::after { content: "✓"; margin-left: auto; color: var(--b); font-weight: 600; }
+.mini-order li.ok .note { margin-left: 0; }
+.mini-order .note { margin-left: auto; color: var(--c); font-weight: 600; }
+
+/* ---------- results ---------- */
+.verdict { margin: 0; font-size: 2.8rem; font-weight: 600; letter-spacing: -.02em; line-height: 1.05; }
+.verdict.good { color: var(--b); }
+.verdict.bad { color: var(--a); }
+.points { margin: 0 0 .4rem; font-size: 1.35rem; font-weight: 600; }
+
+/* ---------- extras ---------- */
+.double { margin: .4rem auto 0; padding: .3rem .9rem; border-radius: .45rem; background: var(--c); color: var(--on-colour); font-weight: 600; }
+.x2 { font-size: .6em; color: var(--c); font-weight: 600; vertical-align: middle; }
+.moved { font-weight: 600; }
+.moved.rise { color: var(--b); }
+.moved.fall { color: var(--a); }
+.award { margin: .3rem 0 0; display: grid; gap: .15rem; padding: .7rem .9rem; border: 2px solid var(--line); border-radius: .6rem; }
+.award strong { color: var(--c); font-weight: 600; }
+.award span { color: var(--muted); }
+.again { margin-top: .8rem; }
+
+/* The remote in the lobby: grouped rows, then Start. */
+.card { display: grid; gap: 1px; margin-top: .6rem; background: var(--line); border-radius: .8rem; overflow: hidden; text-align: left; }
+.row { position: relative; display: flex; min-height: 3.3rem; background: var(--panel); }
+.row-hit {
+  position: relative; flex: 1; min-width: 0; display: flex; align-items: center; gap: .8rem; padding: 0 1rem;
+  border: 0; background: none; font-size: 1.1rem; text-align: left; cursor: pointer;
+}
+.row-k { flex: 1; min-width: 0; }
+.row-v { flex: none; max-width: 60%; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.over { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; font-size: 16px; }
+/* A select counts as focus-visible even when tapped, so the ring waits for the keyboard (html.kbd). */
+.kbd .row:has(.over:focus), .row-hit:focus-visible { outline: 3px solid var(--c); outline-offset: -3px; }
+.start { margin-top: .3rem; }
+.stage.lobby .link { margin-top: 0; align-self: center; }
+
+/* The topic picker: a plain checklist sheet. */
+.sheet {
+  margin: auto auto 0; width: min(100%, 34rem); max-width: 100%; max-height: 90svh; padding: 0 0 max(.8rem, env(safe-area-inset-bottom));
+  border: 0; border-radius: .9rem .9rem 0 0; background: var(--panel); color: var(--ink); overflow-y: auto; overscroll-behavior: contain;
+}
+.sheet::backdrop { background: rgba(4, 10, 8, .6); }
+.sheet-head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; padding: .5rem .5rem .3rem 1.1rem; background: var(--panel); }
+.sheet-head h2 { margin: 0; font-size: 1.15rem; font-weight: 600; }
+.sheet-head .link { margin: 0; color: var(--ink); font-weight: 600; text-decoration: none; }
+.checks { display: grid; padding: 0 1.1rem; }
+.check {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 2.75rem; padding: 0;
+  border: 0; border-bottom: 1px solid var(--line); background: none; color: var(--muted); font-size: 1.05rem; text-align: left;
+}
+.check[aria-pressed="true"] { color: var(--ink); font-weight: 600; }
+.check[aria-pressed="true"] i::after { content: "✓"; font-style: normal; }
+.check:focus-visible { outline: 3px solid var(--c); outline-offset: -3px; }
+.checks .sec { margin: 1.1rem 0 .1rem; color: var(--faint); font-size: .85rem; }
+
+/* During the game: Pause in the header, and once paused, a bar with the rest. */
+.remote-open { margin-left: auto; min-height: 44px; border: 2px solid var(--line); background: transparent; border-radius: .5rem; padding: .3rem .75rem; color: var(--muted); font-size: .95rem; font-weight: 600; }
+.remote-open:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
+.pausebar { margin-top: .8rem; padding: .4rem; border-radius: .6rem; background: var(--raise); }
+.pause-do { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.pause-do .btn { min-height: 2.8rem; padding: .4rem .8rem; white-space: nowrap; }
+.pause-do .btn.primary:first-child { flex: 1; }
+.pause-do .link { margin: 0 0 0 auto; padding: .6rem .25rem; white-space: nowrap; }
+/* The End game check: the question on its own line, the answers under it. */
+#pause-sure > span { flex: 1 0 100%; padding: .2rem .4rem 0; font-weight: 600; line-height: 1.3; }
+#pause-sure .btn { flex: 1; }
+
+.offline {
+  position: fixed; top: max(.6rem, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); margin: 0;
+  background: var(--a); color: var(--on-colour); padding: .35rem .9rem; border-radius: .4rem; font-weight: 600;
+}
+.big-note { font-size: 1.5rem; font-weight: 600; margin: 0; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* A short screen (an iPhone SE in Safari, a phone with the keyboard bar): tighter, so the
+   question, the answers and Lock in all fit. */
+@media (max-height: 640px) {
+  .stage { gap: .55rem; padding: .7rem 0 .2rem; }
+  .q-text { font-size: 1.15rem; margin-bottom: .2rem; }
+  .typed { font-size: 2.4rem; }
+  .keypad { gap: .4rem; }
+  .order, .choices { gap: .45rem; }
+  .lock { margin-top: .3rem; min-height: 2.9rem; padding-block: .6rem; }
+  .item { min-height: 2.7rem; padding-block: .3rem; }
+  .stage.question > .sub { font-size: .9rem; margin-top: -.3rem; }
+}

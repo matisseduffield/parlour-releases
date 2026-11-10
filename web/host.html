@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parlour · Host</title>
+<meta name="theme-color" content="#11201B">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preload" href="fonts/hanken-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="base.css?v=4">
+<link rel="stylesheet" href="host.css?v=8">
+</head>
+<body>
+<main id="tv">
+
+  <!-- Opening a room -->
+  <section id="s-wait" class="screen centre">
+    <p class="wordmark big"><span class="mark" aria-hidden="true"><i class="opt-a"></i><i class="opt-b"></i><i class="opt-c"></i><i class="opt-d"></i></span>Parlour</p>
+    <p class="note" id="wait-note">Opening a room…</p>
+    <button class="btn" id="wait-retry" hidden>Try again</button>
+  </section>
+
+  <!-- Lobby: join on your phone -->
+  <section id="s-lobby" class="screen lobby" hidden>
+    <div class="join">
+      <p class="wordmark"><span class="mark" aria-hidden="true"><i class="opt-a"></i><i class="opt-b"></i><i class="opt-c"></i><i class="opt-d"></i></span>Parlour</p>
+      <div class="qr" id="qr" aria-hidden="true"></div>
+      <p class="join-how">Scan, or go to <strong id="join-url"></strong> and enter</p>
+      <p class="code num" id="code"></p>
+    </div>
+    <div class="room">
+      <div class="players-head">
+        <h2>Players</h2>
+        <span class="count num" id="count"></span>
+      </div>
+      <ul class="lobby-players" id="lobby-players"></ul>
+      <p class="empty" id="lobby-empty">Nobody yet. Phones join as soon as they enter the code.</p>
+      <div class="settings">
+        <div class="setting">
+          <span class="label">Questions</span>
+          <div class="seg" id="lengths"></div>
+        </div>
+        <div class="setting">
+          <span class="label">Topics</span>
+          <!-- Everyday topics, then the packs on a line of their own. -->
+          <div class="chips"><span class="group" id="cats"></span><i class="break"></i><span class="label packs-label">Packs</span><span class="group" id="packs"></span></div>
+        </div>
+      </div>
+      <div class="go">
+        <button class="btn primary" id="start" disabled>Start</button>
+        <span class="hint" id="start-hint">Needs one player</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Question number and topic -->
+  <section id="s-intro" class="screen centre intro" hidden>
+    <p class="intro-n num" id="intro-n"></p>
+    <p class="intro-cat" id="intro-cat"></p>
+    <p class="intro-kind" id="intro-kind"></p>
+    <p class="intro-double" id="intro-double" hidden>Last question · Double points</p>
+  </section>
+
+  <!-- The question, and then its answer -->
+  <section id="s-q" class="screen ask" hidden>
+    <header class="bar">
+      <span class="where num" id="q-where"></span>
+      <span class="secs num" id="q-secs"></span>
+    </header>
+    <div class="timer" id="q-timer"><i></i></div>
+    <h1 class="question" id="q-text"></h1>
+    <div class="body" id="q-body"></div>
+    <p class="fact" id="q-fact" hidden></p>
+    <footer class="answered" id="q-answered"></footer>
+  </section>
+
+  <!-- Standings -->
+  <section id="s-board" class="screen board" hidden>
+    <h2 class="board-title" id="board-title"></h2>
+    <ol class="standings" id="standings"></ol>
+    <ul class="awards" id="awards" hidden></ul>
+    <div class="end-actions" id="end-actions" hidden>
+      <button class="btn primary" id="again">Play again</button>
+      <button class="btn" id="new-room">New room</button>
+    </div>
+  </section>
+
+  <!-- Gone -->
+  <section id="s-gone" class="screen centre" hidden>
+    <p class="note" id="gone-note">This room has closed.</p>
+    <button class="btn primary" id="gone-new">Open a new room</button>
+  </section>
+
+</main>
+
+<div class="controls" id="controls" hidden>
+  <button class="ctl" id="c-pause" title="Pause (Space)">Pause</button>
+  <button class="ctl" id="c-skip" title="Next (→)">Next</button>
+  <button class="ctl" id="c-end" title="End the game">End</button>
+</div>
+<div class="corner">
+  <button class="ctl" id="c-sound" title="Sound (M)">Sound on</button>
+  <button class="ctl" id="c-full" title="Full screen (F)">Full screen</button>
+  <nav class="legal" id="legal" aria-label="Legal" hidden><a href="https://teloone.au/apps/parlour/privacy/" target="_blank" rel="noreferrer">Privacy</a><span aria-hidden="true">·</span><a href="https://teloone.au/apps/parlour/terms/" target="_blank" rel="noreferrer">Terms</a></nav>
+</div>
+<p class="paused" id="paused" hidden>Paused</p>
+<p class="offline" id="offline" hidden>Reconnecting…</p>
+
+<script src="qrcode.js?v=4"></script>
+<script src="shared.js?v=6"></script>
+<script src="host.js?v=8"></script>
+</body>
+</html>
