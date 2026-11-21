@@ -1,0 +1,868 @@
+/* The TV. Sized off the screen's height so it reads the same from the sofa on a
+   laptop or a 65-inch set: 1rem is about a fortieth of the height. On a portrait
+   or very short screen (a phone, a tablet) the page flows instead: see the end.
+
+   The look is a seventies television quiz. Everything that moves does so by
+   transform or opacity alone, and every keyframe set only says where a thing comes
+   from: its resting style is the finished picture, so with animation off, or one
+   that never runs, nothing is left hidden. */
+html { font-size: clamp(12px, min(2.5vh, 1.45vw), 48px); }
+body { overflow: hidden; background: radial-gradient(ellipse 90% 80% at 40% 30%, #3A2012, #27130A 80%) #27130A; }
+/* A television cuts a little off every edge (overscan): nothing that matters is nearer an
+   edge than about three hundredths of the screen. The rainbows and stripes run off it. */
+#tv { position: relative; z-index: 1; height: 100vh; height: 100dvh; padding: 1.2rem 3.4rem 2.6rem; }
+.screen { height: 100%; }
+.defs { position: absolute; }
+
+/* ---------- scenery ----------
+   Fixed behind every screen; where each piece sits depends on the screen showing
+   (host.js names it on the body). */
+.scene { position: fixed; inset: 0; overflow: hidden; pointer-events: none; }
+.bow { position: absolute; overflow: hidden; }
+.bow i { position: absolute; border-style: solid; }
+/* A quarter rainbow for a corner: four rings, each swung in about the corner. */
+.bow-br, .bow-tl { width: 14.4rem; height: 14.4rem; transition: scale .7s cubic-bezier(.3, 1.2, .4, 1); }
+.bow-br { right: 0; bottom: 0; transform-origin: 100% 100%; }
+.bow-tl { left: 0; top: 0; transform-origin: 0 0; scale: 0; }
+.bow-br i { right: 0; bottom: 0; border-width: 2.4rem 0 0 2.4rem; border-top-left-radius: 100%; transform-origin: 100% 100%; }
+.bow-tl i { left: 0; top: 0; border-width: 0 2.4rem 2.4rem 0; border-bottom-right-radius: 100%; transform-origin: 0 0; }
+.bow-br i:nth-child(1), .bow-tl i:nth-child(1) { width: 13.9rem; height: 13.9rem; border-color: var(--rust); }
+.bow-br i:nth-child(2), .bow-tl i:nth-child(2) { width: 11.56rem; height: 11.56rem; border-color: var(--org); }
+.bow-br i:nth-child(3), .bow-tl i:nth-child(3) { width: 9.22rem; height: 9.22rem; border-color: var(--must); }
+.bow-br i:nth-child(4), .bow-tl i:nth-child(4) { width: 6.88rem; height: 6.88rem; border-color: var(--cream); }
+.bow i:nth-child(5) { display: none; }
+.sun { position: absolute; right: 14.3rem; bottom: 2.5rem; width: 4.6rem; height: 4.6rem; transition: translate .7s cubic-bezier(.3, 1.2, .4, 1), scale .7s cubic-bezier(.3, 1.2, .4, 1); animation: turn 60s linear infinite; }
+.stripes { position: absolute; left: 0; bottom: 2.8rem; width: 27rem; height: 1.56rem; border-radius: 0 .78rem .78rem 0; overflow: hidden; display: grid; translate: -101% 0; transition: translate .8s cubic-bezier(.2, .9, .3, 1) .2s; }
+.stripes i:nth-child(1), .wipe i:nth-child(1) { background: var(--cream); }
+.stripes i:nth-child(2), .wipe i:nth-child(2) { background: var(--must); }
+.stripes i:nth-child(3), .wipe i:nth-child(3) { background: var(--org); }
+.stripes i:nth-child(4), .wipe i:nth-child(4) { background: var(--rust); }
+@keyframes turn { to { rotate: 360deg; } }
+
+[data-screen="s-lobby"] .stripes { translate: 0 0; }
+[data-screen="s-wait"] .bow-br, [data-screen="s-gone"] .bow-br, [data-screen="s-intro"] .bow-br { scale: 1.5; }
+[data-screen="s-wait"] .bow-tl, [data-screen="s-gone"] .bow-tl, [data-screen="s-intro"] .bow-tl { scale: 1.5; }
+[data-screen="s-wait"] .sun, [data-screen="s-gone"] .sun { translate: -7rem -5rem; scale: 1.6; }
+[data-screen="s-intro"] .sun { scale: 0; }
+[data-screen="s-q"] .bow-br { scale: .72; }
+[data-screen="s-q"] .sun { translate: 3.6rem -1.7rem; scale: .85; }
+/* The standings sit in the middle: the sun rises in the top corner, the arcs keep to theirs. */
+[data-screen="s-board"] .bow-br { scale: 1; }
+[data-screen="s-board"] .sun { translate: 11.4rem -31.4rem; scale: 3; }
+/* The podium brings its own rainbow; a full board needs the room. */
+body.at-final .bow-br { scale: .8; }
+body.at-final .sun, body.at-many .sun { scale: 0; }
+body.at-many .bow-br { scale: .6; }
+/* A full room's footer runs wide: the sun steps aside. */
+body.crowd[data-screen="s-q"] .sun { scale: 0; }
+/* The sun gives way to a longer word beside Start (why it did nothing, a pack link that didn't open), and under a question to a fact long enough to reach it. host.js says when. */
+body.no-sun .sun { scale: 0; }
+/* An older browser (some televisions' own) knows none of scale, translate and rotate as
+   properties: the scenery that is moved out of sight with them is left out there instead. */
+@supports not (scale: 1) { .bow-tl, .sun, .stripes { display: none; } }
+/* The sun doesn't turn where it isn't shown. */
+[data-screen="s-intro"] .sun, body.at-final .sun, body.at-many .sun, body.crowd[data-screen="s-q"] .sun, body.no-sun .sun { animation-play-state: paused; }
+/* A screen that can't keep up (host.js measures it) has its scenery hold still. Nothing moves place. */
+.easy .sun, .easy .disc .rays, .easy .burst { animation: none; }
+.easy .opt.right .burst { animation: lit .3s both; animation-delay: calc(var(--since, 0ms) + 900ms); }
+
+/* ---------- the channel change ----------
+   Four stripes cross the screen as a new one comes in underneath. host.js flips
+   the body between flick-a and flick-b on each new screen, so it runs once a time. */
+.wipe { position: fixed; inset: 0; z-index: 8; overflow: hidden; pointer-events: none; }
+.wipe i { position: absolute; left: 0; width: 100%; height: 25.2%; transform: translateX(101%); }
+.wipe i:nth-child(2) { top: 25%; } .wipe i:nth-child(3) { top: 50%; } .wipe i:nth-child(4) { top: 75%; }
+.wiping.flick-a .wipe i { animation: wipe-a .6s cubic-bezier(.6, 0, .4, 1) both; }
+.wiping.flick-b .wipe i { animation: wipe-b .6s cubic-bezier(.6, 0, .4, 1) both; }
+.wipe i:nth-child(2) { animation-delay: .05s; } .wipe i:nth-child(3) { animation-delay: .1s; } .wipe i:nth-child(4) { animation-delay: .15s; }
+@keyframes wipe-a { from { transform: translateX(-101%); } }
+@keyframes wipe-b { from { transform: translateX(-101%); } }
+/* The stripes are for the title card alone ('wiping', from host.js), which waits under
+   them; every other screen fades in. */
+.flick-a .screen { animation: fade-a .35s both; }
+.flick-b .screen { animation: fade-b .35s both; }
+@keyframes fade-a { from { opacity: 0; } }
+@keyframes fade-b { from { opacity: 0; } }
+.wiping.flick-a .screen { animation: tune-a .6s both; }
+.wiping.flick-b .screen { animation: tune-b .6s both; }
+@keyframes tune-a { 0%, 45% { opacity: 0; } }
+@keyframes tune-b { 0%, 45% { opacity: 0; } }
+/* The corner arcs are drawn again with each change. */
+.flick-a .bow-br i, .flick-a .bow-tl i { animation: sweep-a .8s cubic-bezier(.2, .8, .3, 1) both; }
+.flick-b .bow-br i, .flick-b .bow-tl i { animation: sweep-b .8s cubic-bezier(.2, .8, .3, 1) both; }
+.bow i:nth-child(1) { animation-delay: .3s; } .bow i:nth-child(2) { animation-delay: .38s; } .bow i:nth-child(3) { animation-delay: .46s; } .bow i:nth-child(4) { animation-delay: .54s; }
+@keyframes sweep-a { from { transform: rotate(90deg); } }
+@keyframes sweep-b { from { transform: rotate(90deg); } }
+
+/* Things that come in with their screen. */
+@keyframes rise { from { transform: translateY(1rem); opacity: 0; } }
+@keyframes pop { from { transform: scale(.6) rotate(-12deg); opacity: 0; } }
+@keyframes slide { from { transform: translateX(-3rem); opacity: 0; } }
+
+/* Opening a room, a room gone. */
+.centre { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem; text-align: center; }
+.wordmark { margin: 0; }
+.wordmark.big { font-size: 9rem; }
+.note { color: var(--muted); font-size: 1.6rem; font-weight: 500; margin: 0; }
+
+/* Buttons are pills with a hard edge under them, pressed down when pushed. */
+.btn {
+  border: 0; border-radius: 99px; min-height: 3rem; padding: 0 1.8rem;
+  background: var(--cream); color: var(--brown); box-shadow: 0 .32rem 0 #B89A78;
+  font-family: var(--display); font-weight: 700; font-size: 1.3rem;
+  transition: transform .08s, box-shadow .08s;
+}
+/* Pressed, it sits down at once and stays down until the room has answered ('busy', from host.js). */
+.btn:not(:disabled):active, .btn.busy { transform: translateY(.2rem); box-shadow: 0 .12rem 0 #B89A78; }
+.btn.primary { background: var(--org); color: var(--cream); box-shadow: 0 .45rem 0 var(--rust); text-shadow: .06em .08em 0 #A3421A; }
+.btn.primary:not(:disabled):active, .btn.primary.busy { transform: translateY(.3rem); box-shadow: 0 .15rem 0 var(--rust); }
+.btn:disabled { background: var(--surface); color: var(--faint); box-shadow: 0 .45rem 0 var(--bg-deep); text-shadow: none; }
+/* Where the keyboard or a television's remote is: a cream ring, clear of the button. */
+.btn:focus-visible, .ctl:focus-visible, .seg button:focus-visible, .chg:focus-visible, .topics button:focus-visible, .player:focus-visible, .drop:focus-visible { outline: .26rem solid var(--cream); outline-offset: .2rem; }
+.settings button:focus-visible, .sure-card .btn:focus-visible, .picker button:focus-visible { outline-color: var(--brown); }
+/* The same ring by plain :focus while the keys are in use (host.js marks the body), for a
+   television's browser too old to know :focus-visible, and bolder: it has to be found from the sofa. */
+.keys button:focus, .keys a:focus { outline: .34rem solid var(--must); outline-offset: .22rem; transform: scale(1.08); z-index: 3; }
+.keys button:focus:not(.drop) { position: relative; }
+/* (Start is large already: it grows less, and stays clear of the words beside it.) */
+.keys .go .btn:focus { transform: scale(1.04); }
+/* Mustard shows on the brown of the screen, on the orange and cream buttons and on the dark
+   bar under the controls. On the cream surfaces (the settings bar and the topic picker, where
+   a topic in play is itself mustard, and the card that asks) it would be lost: the ring is brown there. */
+.keys .settings button:focus, .keys .sure-card .btn:focus, .keys .picker button:focus { outline-color: var(--brown); }
+.keys .settings button:focus, .keys .picker button:focus { outline-width: .28rem; outline-offset: .08rem; transform: scale(1.05); }
+/* A player's card is ringed where it sits: it has neighbours on every side. */
+.keys .player:focus { outline-offset: -.06rem; transform: none; }
+.keys .controls .ctl:focus, .keys .corner .ctl:focus { outline-offset: .16rem; }
+/* The cross on a card shows while the ring is on it. */
+.keys .drop:focus { opacity: 1; }
+@media (hover: hover) {
+  .btn:not(:disabled):not(.primary):hover { background: #FFF4DC; }
+  .btn.primary:not(:disabled):hover { background: #F2763A; }
+}
+
+/* ---------- lobby ---------- */
+.lobby { display: grid; grid-template-columns: 22.2rem minmax(0, 1fr); gap: 3.6rem; padding-bottom: 3rem; }
+.join { display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.lobby .wordmark { font-size: 5.4rem; }
+/* The television: the cabinet is drawn in host.html, and the code sits on its screen. */
+.set { position: relative; flex: none; width: 100%; aspect-ratio: 400 / 316; margin-top: .6rem; animation: pop .6s cubic-bezier(.2, .9, .3, 1.2) .25s both; }
+.cabinet { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* The code fills the screen of the set, its own quiet margin (four modules, drawn in host.js) included. */
+.qr { position: absolute; left: 6.5%; top: 8.228%; width: 59%; aspect-ratio: 1; }
+.qr svg { display: block; width: 100%; height: 100%; border-radius: 13.56%; }
+.join-how { margin: .4rem 0 0; color: #ECD9B6; font-size: 1.17rem; font-weight: 500; line-height: 1.25; text-align: center; text-wrap: balance; }
+.join-how strong { color: var(--must); font-weight: 700; }
+.code { display: flex; justify-content: center; gap: .55rem; margin: .6rem 0 0; }
+.code b {
+  display: grid; place-items: center; width: 5rem; height: 5.8rem; border-radius: 1.45rem;
+  background: var(--must); color: var(--brown); box-shadow: 0 .4rem 0 var(--rust);
+  font-family: var(--display); font-weight: 700; font-size: 4.2rem; line-height: 1;
+  animation: pop .5s cubic-bezier(.2, .9, .3, 1.3) both;
+}
+.code b:nth-child(even) { background: var(--cream); }
+.code b:nth-child(1) { animation-delay: .4s; } .code b:nth-child(2) { animation-delay: .47s; }
+.code b:nth-child(3) { animation-delay: .54s; } .code b:nth-child(4) { animation-delay: .61s; }
+
+.room { display: flex; flex-direction: column; min-height: 0; min-width: 0; padding-top: .9rem; margin-bottom: -2.2rem; }
+/* Only the players' cards give way (pack() in host.js fits them): everything else keeps its height. */
+.players-head { display: flex; flex-wrap: wrap; align-items: center; gap: .1rem .8rem; min-height: 1.6rem; flex: none; }
+.players-head h2, .count, .label, .tally, .lab, .q-label, .intro-n small {
+  margin: 0; font-family: var(--font); font-size: .95rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap;
+}
+.players-head h2 { color: var(--must); }
+.count { color: var(--muted); }
+/* Who has the remote, in words, after the badge their card wears. */
+.players-head .give-hint { display: flex; align-items: center; gap: .4rem; min-width: 0; font-size: 1.05rem; }
+.give-hint > span { min-width: 0; }
+.give-hint .pname { font-family: var(--display); font-weight: 700; font-size: 1.15rem; }
+.give-hint .face { width: 1.3em; height: 1.3em; margin-right: .25em; vertical-align: -.3em; }
+.give-hint .holds { position: static; flex: none; width: 1.35rem; height: 1.35rem; }
+/* The players: a grid of cards the same size, each a character over a name in its colour.
+   host.js says how many across (--cols: three, four or five, by how many there are) and
+   sizes the cards to the room they have (--h, and --f, --nm and --tt for what is in them);
+   a name too long for its card is set smaller, by itself, until it is there in full. */
+.lobby-players { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); grid-auto-rows: var(--h, 8.2rem); align-content: start; gap: .55rem; flex: 1 1 0; min-height: 0; }
+.lobby-players li { position: relative; min-width: 0; border-radius: 1.3rem; background: var(--surface); }
+/* The card is a button: it gives that player the remote, or takes it back. */
+.player { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem; width: 100%; height: 100%; min-width: 0; padding: .4rem .35rem; border: 0; border-radius: inherit; background: none; font-family: var(--display); font-weight: 700; line-height: 1.12; text-align: center; }
+.player .face { display: block; width: var(--f, 4.2rem); height: var(--f, 4.2rem); }
+.player .name { display: block; max-width: 100%; overflow: hidden; color: var(--p); font-size: var(--nm, 1.9rem); white-space: nowrap; }
+.player.away { opacity: .45; }
+/* Between rounds, what they have so far, under the name. */
+.player .tot { color: var(--must); font-family: var(--font); font-weight: 700; font-size: var(--tt, 1rem); line-height: 1.15; }
+@media (hover: hover) { .lobby-players li:hover { background: var(--surface-hi); } }
+/* Which round is next, from the second on. */
+.round-tag, .board-title small { padding: .1rem .85rem .16rem; border-radius: 99px; background: var(--org); color: var(--cream); font-family: var(--font); font-size: .95rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+/* A card rolls in as its player joins. host.js sets the delay, so a redraw carries it on. */
+.lobby-players li.new { animation: roll .7s cubic-bezier(.2, .9, .3, 1.25) both; transform-origin: 0 80%; }
+@keyframes roll { from { transform: translateX(-2.4rem) rotate(-14deg); opacity: 0; } }
+/* Whoever holds the remote wears a badge in the corner of their card: a small drawn remote on mustard. */
+.holds { position: absolute; left: .28rem; top: .28rem; box-sizing: border-box; width: var(--bd, 1.5rem); height: var(--bd, 1.5rem); padding: .22rem; border-radius: 50%; background: var(--must); color: var(--brown); overflow: visible; }
+/* Removing someone is the cross's alone, in the other corner: out of sight until the card is pointed at or the ring is on it. */
+.drop { position: absolute; right: .28rem; top: .28rem; display: grid; place-items: center; width: var(--bd, 1.5rem); height: var(--bd, 1.5rem); padding: 0; border: 0; border-radius: 99px; background: var(--bg-deep); color: var(--muted); opacity: 0; }
+.drop svg { width: 46%; height: 46%; }
+.drop:focus-visible { opacity: 1; }
+@media (hover: hover) {
+  .lobby-players li:hover .drop { opacity: 1; }
+  .drop:hover { color: var(--neg); background: var(--bg-deep); }
+  .lobby-players li:has(.drop:hover) .name { text-decoration: line-through; text-decoration-color: var(--neg); text-decoration-thickness: .08em; }
+}
+/* Nothing to point with: the cross is always there. */
+@media (hover: none) { .drop { opacity: 1; } }
+.empty { color: var(--faint); font-family: var(--display); font-weight: 700; font-size: 1.7rem; line-height: 1.25; margin: .5rem 0 0; flex: 1 1 auto; max-width: 22em; text-wrap: balance; }
+.lobby-players:empty { display: none; }
+
+/* How to play, for a first-timer: three tiles the same size, each a small drawing and a line. */
+.howto { list-style: none; margin: .7rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; flex: none; }
+.howto li { display: flex; align-items: center; gap: .65rem; min-width: 0; padding: .45rem .9rem .5rem .7rem; border-radius: 1.3rem; background: var(--surface); color: #ECD9B6; font-size: 1.1rem; font-weight: 600; line-height: 1.16; text-wrap: balance; animation: rise .5s .5s both; }
+.howto li:nth-child(2) { animation-delay: .57s; } .howto li:nth-child(3) { animation-delay: .64s; }
+.howto li::before { content: ""; flex: none; width: 2.3rem; height: 2.3rem; background: center / contain no-repeat; }
+.howto li:nth-child(1)::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='11' y='3' width='18' height='34' rx='4.5' fill='%23F7E8C9'/%3E%3Crect x='14' y='7' width='12' height='9' rx='2' fill='%232B160C'/%3E%3Ccircle cx='16.5' cy='21.5' r='2' fill='%23E2542C'/%3E%3Ccircle cx='23.5' cy='21.5' r='2' fill='%232C9686'/%3E%3Ccircle cx='16.5' cy='28' r='2' fill='%23F0B12B'/%3E%3Ccircle cx='23.5' cy='28' r='2' fill='%234479B8'/%3E%3C/svg%3E"); }
+.howto li:nth-child(2)::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='27' cy='20' r='10' fill='%23E9682A'/%3E%3Ccircle cx='27' cy='20' r='4.5' fill='%23F7E8C9'/%3E%3Cpath d='M3 12.5h11M6 20h7M3 27.5h11' fill='none' stroke='%23F0B12B' stroke-width='3.6' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.howto li:nth-child(3)::before { content: "\D7 2"; display: grid; place-items: center; width: 2.1rem; height: 2.1rem; margin: 0 .1rem; border-radius: 50%; background: var(--org); color: var(--cream); font-family: var(--display); font-weight: 700; font-size: 1rem; line-height: 1; }
+.lobby.bare .howto { display: none; }
+
+/* The settings: one cream bar. How many questions; then what is picked, said in a tag (the
+   first topic, and how many more), with Change straight after it. Change opens the picker. */
+.settings { display: flex; align-items: center; gap: 1rem; flex: none; margin-top: .8rem; padding: .7rem 1.2rem .9rem; background: var(--cream); color: var(--brown); border-radius: 1.7rem; box-shadow: 0 .45rem 0 var(--bg-deep); }
+.blk { display: grid; grid-template-columns: minmax(0, 1fr); gap: .4rem; min-width: 0; }
+/* (The room at its right is for a length the ring has grown a little.) */
+.blk:first-child { flex: none; margin-right: -.3rem; padding-right: .3rem; }
+.topics-blk { flex: 1 1 auto; }
+.settings .label { color: rgba(43, 22, 12, .78); }
+.rule { align-self: stretch; flex: none; width: .12rem; border-radius: 1px; background: rgba(43, 22, 12, .16); }
+.seg { display: flex; gap: .4rem; }
+.seg button { width: 3.3rem; min-height: 2.6rem; padding: 0 .2rem; border: .14rem solid rgba(43, 22, 12, .34); border-radius: 99px; background: none; color: var(--brown); font-family: var(--display); font-weight: 700; font-size: 1.5rem; white-space: nowrap; }
+.seg button.on { background: var(--org); border-color: var(--org); color: var(--cream); box-shadow: 0 .2rem 0 var(--rust); }
+.now { display: flex; align-items: center; gap: .6rem; min-width: 0; }
+.now-tags { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+/* A long name of the host's own pack is set smaller until it fits, and on two lines if it
+   must be (fitTag in host.js gives --tag and says 'two'): the whole name, always. */
+.tag { display: inline-flex; align-items: center; min-width: 0; min-height: 2.6rem; padding: 0 1rem; border-radius: 99px; background: var(--must); box-shadow: 0 .2rem 0 var(--must-deep); font-weight: 700; font-size: var(--tag, 1.25rem); white-space: nowrap; }
+.tag span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.tag.two { padding: .15rem 1rem .2rem; border-radius: 1.3rem; font-size: var(--tag, 1.05rem); line-height: 1.12; white-space: normal; }
+.tag.two span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; text-wrap: balance; }
+.more { flex: none; color: rgba(43, 22, 12, .72); font-weight: 700; font-size: 1.15rem; white-space: nowrap; }
+.chg { flex: none; min-height: 2.6rem; padding: 0 1.05rem; border: .14rem solid rgba(43, 22, 12, .4); border-radius: 99px; background: none; color: var(--brown); font-weight: 700; font-size: 1.2rem; white-space: nowrap; }
+@media (hover: hover) { .seg button:not(.on):hover, .chg:hover, .topics button:not(.on):hover { border-color: var(--brown); color: var(--brown); } }
+
+/* The topic picker, over the lobby: a cream card, every topic and pack under its heading,
+   four to a row and all the same size; the ones in play are filled. Its heights are all in
+   one unit (--u), which host.js steps down until the card fits the screen (fitPicker). */
+.picker { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 1.2rem 2rem; background: var(--backdrop); }
+.picker-card { --u: 1; box-sizing: border-box; width: min(58rem, 100%); max-height: 100%; overflow: hidden auto; padding: calc(var(--u) * 1.3rem) 2rem calc(var(--u) * 1.5rem); border-radius: 2.2rem; background: var(--cream); color: var(--brown); box-shadow: 0 .6rem 0 var(--bg-deep); outline: none; animation: rise .2s both; }
+.picker-top { display: flex; align-items: baseline; gap: 1.2rem; }
+.picker-top h2 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 2.6rem; line-height: 1.1; }
+.picker-top span { color: rgba(43, 22, 12, .72); font-size: 1.2rem; font-weight: 600; white-space: nowrap; }
+/* (The room at its sides is for a button the ring has grown a little.) */
+.picker-groups, .picker-groups section, .topics { margin-left: -.5rem; margin-right: -.5rem; padding-left: .5rem; padding-right: .5rem; }
+.picker h3 { margin: calc(var(--u) * .95rem) 0 calc(var(--u) * .5rem); color: rgba(43, 22, 12, .78); }
+.topics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: calc(var(--u) * .6rem) .6rem; }
+.topics button { min-width: 0; min-height: calc(var(--u) * 2.9rem); padding: 0 .5rem; border: .13rem solid rgba(43, 22, 12, .28); border-radius: 99px; background: none; color: rgba(43, 22, 12, .7); font-size: 1.3rem; font-weight: 700; white-space: nowrap; }
+.topics button span { display: block; overflow: hidden; text-overflow: ellipsis; }
+.topics button.on { background: var(--must); border-color: var(--must); color: var(--brown); box-shadow: 0 .22rem 0 var(--must-deep); }
+/* The host's own pack: two wide, as its name can be a long one. */
+.topics.own button { grid-column: span 2; }
+.picker-foot { display: flex; align-items: center; gap: 1.2rem; margin-top: calc(var(--u) * 1.5rem); padding-bottom: .45rem; }
+.picker-foot .btn { min-height: calc(var(--u) * 3.4rem); }
+#picker-done { padding: 0 3rem; font-size: 1.8rem; }
+#picker-mix { background: none; box-shadow: inset 0 0 0 .14rem rgba(43, 22, 12, .4); font-family: var(--font); font-size: 1.2rem; }
+#picker-mix:active { transform: none; box-shadow: inset 0 0 0 .14rem var(--brown); }
+@media (hover: hover) { #picker-mix:hover { background: rgba(43, 22, 12, .08); } }
+/* Start, and a word beside it. The row stops short of the corner arcs. */
+.go { display: flex; align-items: center; gap: 1.4rem; flex: none; margin-top: 1.2rem; padding: 0 9.5rem .5rem 0; }
+.go .btn { flex: none; min-height: 4.2rem; padding: 0 4.2rem; font-size: 2.3rem; }
+.hint { min-width: 0; color: var(--muted); font-size: 1.2rem; font-weight: 500; line-height: 1.2; }
+
+/* ---------- the title card: question number and topic ---------- */
+.intro { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9rem; text-align: center; }
+.disc { position: relative; display: grid; place-items: center; width: 19rem; height: 19rem; animation: pop .6s cubic-bezier(.2, .9, .3, 1.25) .25s both; }
+.disc .rays { position: absolute; inset: 0; width: 100%; height: 100%; fill: var(--must); animation: turn 40s linear infinite; }
+.disc::before { content: ""; position: absolute; inset: 20%; border-radius: 50%; background: var(--org); box-shadow: inset 0 0 0 .55rem var(--rust); }
+.intro-n { position: relative; margin: 0; display: grid; justify-items: center; line-height: 1; color: var(--cream); }
+.intro-n b { margin: .1rem 0 .2rem; font-family: var(--display); font-weight: 700; font-size: 6rem; line-height: .95; text-shadow: .04em .04em 0 var(--rust), .08em .08em 0 var(--rust-deep); }
+/* The topic between two bands of stripes. A long name is set smaller and without them,
+   and takes two lines before it would run off the screen. */
+.intro-cat { display: flex; align-items: center; justify-content: center; gap: 1.6rem; max-width: 100%; margin: 0; font-family: var(--display); font-weight: 700; font-size: 4.6rem; line-height: 1.1; color: var(--must); text-shadow: .04em .04em 0 var(--rust), .08em .08em 0 var(--rust-deep); text-wrap: balance; animation: rise .5s .42s both; }
+.intro-cat.long { font-size: 3.4rem; line-height: 1.08; }
+.intro-cat.long::before, .intro-cat.long::after { display: none; }
+.intro-cat::before, .intro-cat::after { content: ""; flex: none; width: 8rem; height: 1.4rem; border-radius: .7rem; background: linear-gradient(var(--cream) 0 25%, var(--must) 25% 50%, var(--org) 50% 75%, var(--rust) 75%); }
+.intro-kind { margin: 0; padding: .3rem 1.4rem .35rem; border-radius: 99px; background: var(--cream); color: var(--brown); font-size: 1.45rem; font-weight: 600; animation: rise .5s .52s both; }
+.intro-kind:empty { display: none; }
+.intro-double { margin: .3rem 0 0; padding: .35rem 1.6rem .45rem; border-radius: 99px; background: var(--org); color: var(--cream); box-shadow: 0 .35rem 0 var(--rust); font-family: var(--display); font-weight: 700; font-size: 1.7rem; animation: rise .5s .62s both, throb 1s 1.2s 2; }
+@keyframes throb { 50% { transform: scale(1.07); } }
+
+/* ---------- the question ---------- */
+.ask { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto auto; padding-bottom: 1.3rem; }
+/* The time left runs along the top edge as stripes, and counts down on the flip clock. */
+.ask .timer { position: fixed; left: 0; right: 0; top: 0; height: .5rem; border-radius: 0; }
+.ask.ph-reveal .timer { visibility: hidden; }
+.bar { display: flex; justify-content: space-between; align-items: flex-start; min-height: 6.5rem; }
+.where { display: grid; justify-items: start; gap: .25rem; margin: 0; padding-top: .7rem; }
+.lab { color: var(--muted); font-size: 1.05rem; }
+.where b { font-family: var(--display); font-weight: 700; font-size: 2.6rem; line-height: 1.05; color: var(--must); text-shadow: .06em .06em 0 var(--rust); }
+.where em { margin-top: .25rem; padding: .1rem .9rem .16rem; border-radius: 99px; background: var(--org); color: var(--cream); font-style: normal; font-weight: 700; font-size: 1.05rem; }
+.clock { position: relative; display: grid; justify-items: center; }
+.flip { display: flex; gap: .45rem; padding: .6rem .75rem .7rem; border-radius: 1.2rem; background: var(--must); box-shadow: 0 .4rem 0 var(--must-deep); }
+.flip b {
+  display: grid; place-items: center; width: 3.5rem; height: 4.8rem; border-radius: .55rem;
+  background: linear-gradient(#24120A 0 49%, #0E0603 49% 51%, #2F190E 51%); color: var(--cream);
+  font-family: var(--font); font-weight: 700; font-size: 3.8rem; line-height: 1;
+}
+/* Each card flaps when its figure changes: host.js swaps the two names. */
+.flap-a { animation: flap-a .28s cubic-bezier(.3, 1.4, .5, 1); }
+.flap-b { animation: flap-b .28s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes flap-a { from { transform: perspective(14rem) rotateX(-80deg); } }
+@keyframes flap-b { from { transform: perspective(14rem) rotateX(-80deg); } }
+.timer.low ~ .bar .flip { background: var(--org); box-shadow: 0 .4rem 0 var(--rust); }
+/* It beats once a second through the last five (host.js swaps the two names). */
+.flip.beat-a { animation: beat-a .25s; }
+.flip.beat-b { animation: beat-b .25s; }
+@keyframes beat-a { 50% { transform: scale(1.12); } }
+@keyframes beat-b { 50% { transform: scale(1.12); } }
+.ask.ph-reveal .flip { visibility: hidden; }
+/* The seconds as text are for the countdown to write to; shown only to say Paused. */
+.secs { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.ask.held .secs {
+  position: absolute; left: 50%; top: 50%; width: auto; height: auto; overflow: visible; clip-path: none; transform: translate(-50%, -50%) rotate(-6deg);
+  padding: .3rem 1.1rem .4rem; border-radius: 99px; background: var(--cream); color: var(--brown); box-shadow: 0 .3rem 0 #B89A78;
+  font-family: var(--display); font-weight: 700; font-size: 1.5rem;
+}
+.ask.held .flip b { color: rgba(247, 232, 201, .35); }
+/* Paused on a question; on a reveal the answer stays bright. */
+.ask.ph-question.held .question, .ask.ph-question.held .body { opacity: .45; }
+.question { margin: .3rem 0 0; font-family: var(--display); font-weight: 700; font-size: 2.85rem; line-height: 1.14; text-wrap: balance; animation: rise .45s .3s both; }
+.question.long { font-size: 2.3rem; }
+/* The space between question and footer. Anything too tall is cut at the bottom,
+   never pushed up over the question. The side room is for what sticks out of a pill. */
+.body { align-self: stretch; display: flex; flex-direction: column; justify-content: center; justify-content: safe center; min-height: 0; overflow: hidden; margin: 0 -1.6rem; padding: 1.2rem 1.6rem 1.4rem; }
+
+/* The answers: four pills the same size, each in its colour with its letter on a daisy. */
+.options { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 1.4rem 1.6rem; flex: 0 1 13.4rem; min-height: 0; }
+.opt {
+  position: relative; isolation: isolate; display: flex; align-items: center; gap: 1.1rem; min-height: 0;
+  padding: .3rem 1.3rem .3rem 1rem; border-radius: 3.1rem; background: var(--o); color: var(--on); box-shadow: 0 .5rem 0 var(--o-deep);
+  font-family: var(--display); font-weight: 700; font-size: 2.5rem; line-height: 1.06;
+}
+.opt .letter { font-size: 1.8rem; }
+.opt .text { flex: 1 1 auto; min-width: 0; overflow-wrap: break-word; }
+/* With names beside it, the answer has what the names leave: they keep to their share of
+   the pill (--cap), and host.js sets both sizes so each is as large as fits (fitOptions). */
+.opt.picked .text { flex: 1 1 0; }
+.options.fitting .text { overflow-wrap: normal; }
+.options.long .opt.picked { font-size: 1.35rem; }
+/* Once names are on any of them, all four step down together so the names have a line to themselves. */
+.options.names:not(.long) .opt { font-size: 2rem; padding-right: .9rem; }
+.options.long .opt { font-size: 1.75rem; }
+/* They slide in one after another as the question arrives. */
+.ph-question .opt { animation: slide .4s cubic-bezier(.2, .9, .3, 1.15) both; }
+.ph-question .opt:nth-child(1) { animation-delay: .2s; } .ph-question .opt:nth-child(2) { animation-delay: .25s; }
+.ph-question .opt:nth-child(3) { animation-delay: .3s; } .ph-question .opt:nth-child(4) { animation-delay: .35s; }
+/* The answer: wrong ones fade to brown, though not the names of who picked them
+   (that's the fun part); the right one swells, with a starburst turning behind its letter. */
+.opt.dim { background: var(--surface); color: var(--muted); box-shadow: 0 .5rem 0 var(--bg-deep); }
+/* Not all at once. The wrong ones go out one after another (0, .2 and .4 s: host.js gives
+   each its --dim); the right one pops at .9 s; the names come at 1.3 s and the points under
+   them at 1.7 s. Every delay is counted from when the answer came up (--since, a time
+   already gone by when something is drawn again part way), so a redraw carries on. */
+.opt.dim::before { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: var(--o); box-shadow: 0 .5rem 0 var(--o-deep); opacity: 0; animation: unlit .5s both; animation-delay: calc(var(--since, 0ms) + var(--dim, 0ms)); }
+@keyframes unlit { from { opacity: 1; } }
+.opt.dim .letter { opacity: .5; }
+.opt.right { animation: crown .5s both; animation-delay: calc(var(--since, 0ms) + 900ms); }
+@keyframes crown { 50% { transform: scale(1.1); } }
+.burst { position: absolute; z-index: -1; fill: var(--cream); animation: turn 16s linear infinite; }
+.opt.right .burst { animation: turn 16s linear infinite, lit .3s both; animation-delay: 0s, calc(var(--since, 0ms) + 900ms); }
+@keyframes lit { from { opacity: 0; } }
+.opt .burst { left: .04rem; top: 50%; width: 6.6rem; height: 6.6rem; margin-top: -3.3rem; opacity: .9; }
+.pickers { flex: 0 0 auto; min-width: 0; margin-left: auto; display: flex; flex-wrap: wrap; gap: .05rem .6rem; justify-content: flex-end; max-width: var(--cap, 50%); padding: .35rem .8rem .42rem; border-radius: 1.3rem; background: var(--bg); font-family: var(--font); font-size: var(--pk, 1.4rem); line-height: 1.2; animation: rise .4s both; animation-delay: calc(var(--since, 0ms) + 1300ms); }
+/* A name wider than the pill breaks rather than spill out of it. */
+.pickers .pname { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: right; }
+.opt.dim .pickers { background: var(--bg-deep); }
+.pickers .face, .guesses .face { width: 1.1em; height: 1.1em; margin-right: .26em; vertical-align: -.22em; }
+/* A player with no character has a disc of their colour in its place. */
+.face.none { border-radius: 50%; background: var(--p); }
+.pickers .cnt { display: none; }
+/* A full room's names go without their characters. */
+.crowd .pickers:not(.faces) .face { display: none; }
+/* Names are never set smaller than reads from the sofa. Where an answer has more names than
+   fit at that size (host.js says: 'faces'), it shows who by their characters, and how many;
+   and where not even those fit ('only'), how many. The names are still in the points below. */
+.pickers.faces { align-items: center; gap: .2rem .28rem; }
+.pickers.faces .nm { display: none; }
+.pickers.faces .pname { display: flex; }
+.pickers.faces .face { display: block; width: var(--fc, 1.5rem); height: var(--fc, 1.5rem); margin: 0; }
+.pickers.faces .cnt { display: block; margin-left: .3rem; color: var(--cream); font-size: 1.3rem; font-weight: 700; line-height: 1; white-space: nowrap; }
+.pickers.faces.only { max-width: none; }
+.pickers.faces.only .pname { display: none; }
+.pickers.faces.only .cnt { margin: 0 .1rem; font-size: 1.4rem; }
+.pickers.faces.only .cnt::after { content: " picked this"; font-size: .75em; font-weight: 600; }
+
+/* A number to guess: a handset, and what to do with it. */
+.guess { display: flex; align-items: center; gap: 2.6rem; animation: rise .5s .4s both; }
+.handset { flex: none; width: 6.6rem; height: 10.45rem; transform: rotate(-8deg); }
+.guess p { margin: 0; max-width: 12em; font-family: var(--display); font-weight: 700; font-size: 3rem; line-height: 1.12; text-wrap: balance; }
+.unit { color: var(--must); }
+
+/* A number: the answer large on a starburst, the guesses listed beside it, closest first. */
+.number { display: flex; align-items: center; gap: 3.5rem; min-height: 0; }
+.answer-card { position: relative; isolation: isolate; flex: none; align-self: stretch; display: grid; place-items: center; min-width: 17rem; min-height: 12rem; max-height: 17rem; padding: 0 1.5rem; animation: pop .6s cubic-bezier(.2, .9, .3, 1.25) both; }
+.answer-card .burst { inset: 0; width: 100%; height: 100%; fill: var(--rust); }
+.big-answer { margin: 0; font-family: var(--display); font-weight: 700; font-size: var(--big, 7.2rem); line-height: 1; white-space: nowrap; text-shadow: .04em .04em 0 var(--org), .08em .08em 0 var(--rust-deep); }
+.big-answer .unit { font-size: .35em; color: var(--must); text-shadow: none; }
+.guesses { list-style: none; margin: 0; padding: .5rem 1.6rem; display: grid; grid-template-columns: auto auto auto; column-gap: 1.4rem; align-content: start; max-height: 22rem; overflow: hidden; background: var(--surface); border-radius: 1.6rem; animation: rise .5s .3s both; }
+.guesses li { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: baseline; padding: .21em 0; font-size: var(--g, 1.5rem); }
+.guesses li + li { border-top: 1px solid var(--line); }
+.guesses .name { white-space: nowrap; }
+/* Up to four guesses are set larger; five to eight go two across, closest first down each
+   side. host.js says how many rows (--rows) and steps the type down (--g) if they are wide. */
+.guesses.few li { font-size: var(--g, 1.9rem); }
+.guesses.two { grid-template-columns: repeat(2, auto auto auto); grid-template-rows: repeat(var(--rows, 4), auto); grid-auto-flow: column; }
+.guesses.two li { grid-column: span 3; font-size: var(--g, 1.6rem); }
+.guesses.two li.lead { padding-right: 1.6rem; }
+.guesses.two li.top { border-top: 0; }
+.guesses.two .more { grid-column: 1 / -1; grid-row: -1; }
+.guesses .g { font-weight: 700; text-align: right; white-space: nowrap; }
+.guesses li:first-child .g { color: var(--must); }
+.guesses .off { color: var(--muted); font-size: .77em; font-weight: 500; white-space: nowrap; }
+.guesses .more { display: block; color: var(--faint); font-size: 1.15rem; }
+@supports not (grid-template-columns: subgrid) { .guesses li { display: flex; gap: 1.2rem; } }
+
+/* The right order: four pills down the screen, each as wide as it needs. */
+.right-order { list-style: none; margin: 0; padding: 0; display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); gap: .8rem; flex: 0 1 17rem; min-height: 0; width: fit-content; min-width: min(100%, 24rem); max-width: 100%; }
+.right-order .opt { padding: .1rem 1.8rem .1rem .9rem; font-size: 1.9rem; box-shadow: 0 .4rem 0 var(--o-deep); animation: slide .45s cubic-bezier(.2, .9, .3, 1.15) both; }
+.right-order .opt:nth-child(2) { animation-delay: .12s; } .right-order .opt:nth-child(3) { animation-delay: .24s; } .right-order .opt:nth-child(4) { animation-delay: .36s; }
+.right-order .opt .text { flex: 0 1 auto; }
+.right-order .place { width: 1.3ch; font-size: 2.1rem; text-align: center; }
+.right-order .letter { font-size: 1.15rem; }
+.right-order .note { padding-left: .6rem; color: inherit; font-family: var(--font); font-weight: 600; font-size: 1.3rem; white-space: nowrap; opacity: .85; }
+
+.fact { margin: 0 0 .7rem; max-width: 40em; color: #ECD9B6; font-size: 1.72rem; font-weight: 500; line-height: 1.25; animation: rise .5s both; animation-delay: calc(var(--since, 0ms) + 1500ms); }
+
+/* Under the question: how many are in, then who; after it, who scored. Kept clear of the corner arcs. */
+.answered { display: flex; align-items: baseline; justify-content: flex-start; gap: .6rem 1.8rem; min-height: 3.2rem; padding-right: 13rem; }
+.who, .gains { display: flex; flex-wrap: wrap; align-items: baseline; gap: .1rem 1.5rem; }
+.tally { color: var(--must); font-size: 1.05rem; }
+/* Still to answer: dull, but readable from the sofa, as these are the names being looked for. */
+.dot { font-family: var(--display); font-weight: 700; font-size: var(--dot, 1.7rem); line-height: 1.25; color: #97795B; white-space: nowrap; transition: color .2s; }
+.dot.in { color: var(--p); animation: hop .4s cubic-bezier(.2, .9, .3, 1.4); }
+@keyframes hop { from { transform: translateY(.5rem) scale(.8); } }
+/* Gone offline, or looking away: fainter, as in the lobby. */
+.dot.away { opacity: .45; }
+/* Their character waits with them, and lights up with the name. */
+.dot .face { width: 1.15em; height: 1.15em; margin-right: .28em; vertical-align: -.24em; opacity: .4; transition: opacity .2s; }
+.dot.in .face { opacity: 1; }
+.gain { display: flex; align-items: baseline; gap: .45rem; font-size: calc(var(--gn, 1) * 1.5rem); font-weight: 700; color: var(--must); white-space: nowrap; animation: rise .4s both; animation-delay: calc(var(--since, 0ms) + 1700ms); }
+.gain .pname { font-family: var(--display); font-weight: 700; font-size: calc(var(--gn, 1) * 1.75rem); }
+/* Nobody right: said out loud, in the colour of a wrong answer. */
+.gains .gain.none, .crowd .gains .gain.none { color: var(--neg); font-family: var(--display); font-weight: 700; font-size: 2.6rem; line-height: 1.15; animation-name: pop; animation-duration: .5s; animation-timing-function: cubic-bezier(.2, .9, .3, 1.25); }
+/* Five or more scored: a size down, so the row keeps to two lines. */
+.gains.many .gain { font-size: calc(var(--gn, 1) * 1.25rem); }
+.gains.many .gain .pname { font-size: calc(var(--gn, 1) * 1.45rem); }
+.quick { color: var(--muted); font-size: 1.35rem; font-weight: 500; white-space: nowrap; animation: rise .4s both; animation-delay: calc(var(--since, 0ms) + 1900ms); }
+.quick strong { color: var(--cream); font-weight: 700; }
+
+/* ---------- standings ----------
+   A list in the middle of the screen, each score straight after its name, set as large as
+   the room allows (fitBoard in host.js gives --bf); the sun and the arcs keep to the corners. */
+/* Through a game the list keeps clear of Pause, Next and End at the foot of the screen. */
+.board { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-bottom: 1.3rem; }
+.board-title { margin: .5rem 0 1.1rem; font-family: var(--display); font-weight: 700; font-size: 3.4rem; line-height: 1.1; color: var(--cream); text-shadow: .04em .04em 0 var(--org), .08em .08em 0 var(--rust-deep); animation: rise .5s .3s both; }
+.standings, .standings ol { list-style: none; margin: 0; padding: 0; }
+.standings { flex: none; max-width: 100%; display: grid; grid-template-columns: repeat(5, auto); justify-content: center; gap: .55rem 1.3rem; }
+.standings li[data-k] { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: baseline; padding: .25em 1em .3em .88em; border-radius: 99px; background: var(--surface); font-size: var(--bf, 1.7rem); animation: rise .45s both; }
+.standings > li:first-child { background: var(--surface-hi); }
+.standings > li:nth-child(1) { animation-delay: .35s; } .standings > li:nth-child(2) { animation-delay: .41s; } .standings > li:nth-child(3) { animation-delay: .47s; }
+.standings > li:nth-child(4) { animation-delay: .53s; } .standings > li:nth-child(n+5) { animation-delay: .59s; }
+.standings .place { color: var(--must); font-family: var(--display); font-weight: 700; font-size: .78em; }
+/* Everyone's name in their colour, as on their phone. */
+.standings .name, .guesses .name, .award-who .name { color: var(--p); font-family: var(--display); font-weight: 700; }
+.standings .name { white-space: nowrap; }
+.standings .name .face { width: 1.22em; height: 1.22em; margin-right: .32em; vertical-align: -.28em; }
+/* What a player made this round, after their running total. */
+.won { margin-left: .45em; color: var(--must); font-size: .78em; font-weight: 700; white-space: nowrap; }
+.board-title small { display: inline-block; margin-right: .9rem; padding: .22rem 1rem .3rem; font-size: 1.05rem; line-height: 1.2; vertical-align: .6rem; text-shadow: none; }
+.standings .score { position: relative; font-weight: 700; text-align: right; }
+/* A score that counts up keeps the room of its final figure (the unseen one) while the one seen counts. */
+.standings .score i { font-style: normal; visibility: hidden; }
+.standings .score b { position: absolute; right: 0; top: 0; font-weight: inherit; white-space: nowrap; }
+/* From the second standings of a game on, the rows are drawn where they were last time
+   (host.js gives each the way back there, --dy) and slide to where they are now,
+   one after another in time with the sound (--go); each place is said once its row is home. */
+.standings.slid li[data-k] { animation: settle .6s cubic-bezier(.3, 1.1, .4, 1) both; animation-delay: calc(var(--since, 0ms) + var(--go, 750ms)); }
+@keyframes settle { from { transform: translateY(var(--dy, 0px)); } }
+.standings.slid li.hop { animation-name: lit; animation-duration: .4s; animation-timing-function: ease; }
+.standings.slid .place, .standings.slid .moved { animation: lit .3s both; animation-delay: calc(var(--since, 0ms) + var(--go, 750ms) + 450ms); }
+.standings .up { color: var(--must); font-size: .78em; font-weight: 700; }
+.standings .moved { font-size: .78em; font-weight: 700; }
+.standings .moved.rise { color: #7DD3C2; }
+.standings .moved.fall { color: var(--neg); }
+@supports not (grid-template-columns: subgrid) { .standings li[data-k] { display: flex; gap: 1.2rem; } }
+/* Two columns once they wouldn't fit in one: eight down, then the rest. */
+.standings.many { grid-template-columns: repeat(5, auto) 1.2rem repeat(5, auto); row-gap: .42rem; }
+.standings.many li[data-k] { grid-column: 1 / 6; font-size: var(--bf, 1.4rem); padding: .21em 1em .26em .86em; }
+.standings.many li:nth-child(n+9) { grid-column: 7 / 12; }
+.standings.many li:nth-child(9) { grid-row: 1; } .standings.many li:nth-child(10) { grid-row: 2; } .standings.many li:nth-child(11) { grid-row: 3; } .standings.many li:nth-child(12) { grid-row: 4; }
+.standings.many li:nth-child(13) { grid-row: 5; } .standings.many li:nth-child(14) { grid-row: 6; } .standings.many li:nth-child(15) { grid-row: 7; } .standings.many li:nth-child(16) { grid-row: 8; }
+
+/* The end: the first three on a podium under a rainbow, the rest listed beside it.
+   host.js gives every player the moment they come in (--at), last place first and
+   the winner last, and the rainbow the winner's moment (--win). */
+.board.final { align-items: center; justify-content: center; padding-bottom: 0; }
+.final .board-title { margin: 0 0 .9rem; }
+.final .standings { display: flex; align-items: flex-end; justify-content: center; gap: 2.2rem; }
+.final .standings > li { background: none; animation: none; }
+/* As wide as its rainbow, or wider if two or three share first place and need it. */
+.pods { position: relative; display: flex; justify-content: center; align-items: flex-end; flex: none; width: max-content; min-width: 37rem; min-height: 18.5rem; }
+.pods > ol { position: relative; display: flex; align-items: flex-end; gap: .3rem; }
+.bow-half { left: 50%; bottom: 0; width: 37rem; height: 18.5rem; margin-left: -18.5rem; }
+.bow-half i { left: 50%; bottom: 0; border-width: 1.8rem 1.8rem 0; border-radius: 99rem 99rem 0 0; transform-origin: 50% 100%; animation: arch 1s cubic-bezier(.3, .9, .3, 1) both; animation-delay: var(--win, 0ms); }
+.bow-half i:nth-child(1) { width: 37rem; height: 18.5rem; margin-left: -18.5rem; border-color: var(--rust); }
+.bow-half i:nth-child(2) { width: 33.5rem; height: 16.75rem; margin-left: -16.75rem; border-color: var(--org); animation-delay: calc(var(--win, 0ms) + 90ms); }
+.bow-half i:nth-child(3) { width: 30rem; height: 15rem; margin-left: -15rem; border-color: var(--must); animation-delay: calc(var(--win, 0ms) + 180ms); }
+.bow-half i:nth-child(4) { width: 26.5rem; height: 13.25rem; margin-left: -13.25rem; border-color: var(--cream); animation-delay: calc(var(--win, 0ms) + 270ms); }
+@keyframes arch { from { transform: rotate(-180deg); } }
+.final .standings li.pod { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; width: 10.6rem; padding: 0; border-radius: 0; background: none; font-size: 1.7rem; animation: none; }
+.final .standings li.pod.winner { width: 13.4rem; font-size: 2.1rem; }
+.pod:nth-child(1) { order: 2; } .pod:nth-child(2) { order: 1; } .pod:nth-child(3) { order: 3; }
+.plate { position: relative; isolation: isolate; display: grid; justify-items: center; max-width: 100%; margin-bottom: .55rem; padding: .3rem .8rem .45rem; border-radius: 1.2rem; background: var(--bg-deep); animation: drop .5s cubic-bezier(.2, .9, .3, 1.3) both; animation-delay: calc(var(--at, 0ms) + 450ms); }
+@keyframes drop { from { transform: translateY(-1.4rem) scale(.7); opacity: 0; } }
+/* A name too long for its plate is set smaller until it fits (fitPods in host.js), never cut. */
+.plate .name { max-width: 100%; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plate .score { max-width: 100%; font-size: 1.25rem; text-align: center; white-space: nowrap; }
+/* Their character stands on the plate, large; the winner's larger still. */
+.plate .face { display: block; width: 3.5rem; height: 3.5rem; margin-bottom: .1rem; }
+.pod.winner .plate .face { width: 4.4rem; height: 4.4rem; }
+.plate .burst { z-index: -2; left: 50%; top: 50%; width: 12rem; height: 12rem; margin: -6rem 0 0 -6rem; fill: var(--must); }
+.pod.winner .plate::before { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; background: var(--bg-deep); }
+.col { display: flex; justify-content: center; align-items: baseline; width: 100%; padding-top: .7rem; border-radius: 1.2rem 1.2rem 0 0; font-family: var(--display); font-weight: 700; transform-origin: 50% 100%; animation: grow .7s cubic-bezier(.2, 1.3, .4, 1) both; animation-delay: var(--at, 0ms); }
+@keyframes grow { from { transform: scaleY(0); } }
+.col b { font-size: 3.8rem; line-height: 1; }
+.col small { font-size: 1.3rem; }
+.pl-1 .col { height: 10rem; background: var(--must); color: var(--brown); box-shadow: inset 0 -.5rem 0 var(--must-deep); }
+.pl-2 .col { height: 7.2rem; background: var(--org); color: var(--cream); box-shadow: inset 0 -.5rem 0 var(--rust); }
+.pl-3 .col { height: 4.9rem; background: var(--cream); color: var(--brown); box-shadow: inset 0 -.5rem 0 #B89A78; }
+.pl-3 .col b { font-size: 2.9rem; }
+.rest > ol { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, auto); gap: .3rem 1.6rem; padding-bottom: .4rem; }
+.final .standings .rest li[data-k] { grid-column: auto; grid-row: auto; display: flex; gap: .7rem; padding: .12rem 0; border-radius: 0; background: none; font-size: var(--rf, 1.5rem); animation: rise .5s both; animation-delay: var(--at, 0ms); }
+.rest .place { flex: none; width: 2.9em; }
+/* Beside the podium: one list, a row each, the same columns down it (place, character and
+   name, total, and this round's points from the second round on). However many there are
+   it is as tall as the podium has room for: host.js says how many (--n), and the type is
+   sized from that. Names in full: host.js steps it down further (--rf) only if too wide. */
+.rest:not(.flat) > ol { grid-auto-flow: row; grid-template-rows: none; grid-template-columns: repeat(4, auto); justify-content: start; gap: 0 .75rem; }
+.final .standings .rest:not(.flat) li[data-k] { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: baseline; gap: 0 .75rem; padding: .05em 0; line-height: 1.2; font-size: var(--rf, min(1.5rem, calc(var(--tall, 21rem) / var(--n, 7) / 1.3))); }
+.awarded .rest { --tall: 18.7rem; }
+.rest:not(.flat) .place { width: auto; }
+.rest:not(.flat) .won { margin-left: 0; }
+@supports not (grid-template-columns: subgrid) { .final .standings .rest:not(.flat) li[data-k] { display: flex; } }
+.final .standings:has(.rest li[data-k]:nth-child(8)) { gap: 1.5rem; }
+/* Nobody scored: no podium, no winner. Everyone in one plain list, larger; two columns of eight for a full room. */
+.final .standings .rest.flat li[data-k] { font-size: var(--rf, 2rem); }
+.final .standings .rest.flat ol.two li[data-k] { gap: .7rem; font-size: var(--rf, 1.6rem); }
+.rest.flat > ol { column-gap: 2.6rem; }
+.rest.flat > ol.two { grid-template-rows: repeat(8, auto); }
+
+/* Confetti for the winner: 24 pieces that fall once from over the top of the screen to under
+   its foot, where they rest out of sight (so with animation off, none is seen). host.js
+   gives each its place, colour (--tint) and tumble, its own wait (--lag), and the moment
+   the winner comes (--win). (Not --c and --d: those are two of the answers' colours.) */
+.confetti { position: fixed; inset: 0; z-index: 4; overflow: hidden; pointer-events: none; }
+.confetti i { position: absolute; left: var(--x, 50%); top: 0; width: .75rem; height: 1.2rem; border-radius: .16rem; background: var(--tint, var(--must)); transform: translate(0, 112vh) rotate(var(--r, 2turn)); animation: confetti 2.4s cubic-bezier(.25, .4, .6, 1) both; animation-delay: calc(var(--win, 0ms) + var(--lag, 0ms)); }
+@keyframes confetti { from { transform: translate(var(--sx, 0rem), -14vh) rotate(0turn); } }
+.easy .confetti { display: none; }
+
+/* The awards: a rosette, what it's for, and who took it. Every tile as wide as the widest. */
+.awards { list-style: none; margin: 1.5rem 0 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 1.1rem; flex: none; max-width: 100%; }
+.awards li { display: grid; grid-template-columns: auto minmax(0, auto); column-gap: .8rem; align-items: center; align-content: center; justify-content: start; min-width: 0; padding: .45rem 1.5rem .5rem .7rem; border-radius: 2rem; background: var(--surface); animation: pop .5s cubic-bezier(.2, .9, .3, 1.25) both; }
+/* One award alone: as wide as the two buttons under it, its words in the middle. */
+.awards li:only-child { min-width: 21.4rem; justify-content: center; }
+.rosette { grid-row: 1 / 3; width: 3rem; height: 3rem; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-42 -42 84 84'%3E%3Cg fill='%23F0B12B'%3E%3Ccircle cy='-25' r='14.5'/%3E%3Ccircle cy='25' r='14.5'/%3E%3Ccircle cx='-25' r='14.5'/%3E%3Ccircle cx='25' r='14.5'/%3E%3Ccircle cx='17.7' cy='-17.7' r='14.5'/%3E%3Ccircle cx='-17.7' cy='-17.7' r='14.5'/%3E%3Ccircle cx='17.7' cy='17.7' r='14.5'/%3E%3Ccircle cx='-17.7' cy='17.7' r='14.5'/%3E%3C/g%3E%3Ccircle r='20' fill='%23E9682A'/%3E%3Ccircle r='10' fill='%23F7E8C9'/%3E%3C/svg%3E") center / contain no-repeat; }
+.award-title { color: var(--must); font-family: var(--display); font-weight: 700; font-size: 1.2rem; line-height: 1.15; white-space: nowrap; }
+.award-who { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .6rem; min-width: 0; font-size: 1.35rem; line-height: 1.2; }
+.award-who .name { white-space: nowrap; }
+.award-detail { color: var(--muted); font-size: 1.1rem; font-weight: 500; white-space: nowrap; }
+/* Play again and New room, under it all. The delay is set from host.js. */
+.end-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem; padding-bottom: .5rem; flex: none; }
+.end-actions .btn { min-height: 3rem; min-width: 10rem; }
+.final .end-actions { animation: rise .5s both; }
+
+/* ---------- a full room ----------
+   The lobby makes room in steps, only as the cards need it (pack() in host.js): the
+   settings and Start a little tighter, then no how-to-play strip, then as trim as they go. */
+.snug .settings { margin-top: .6rem; padding: .55rem 1.2rem .75rem; }
+.snug .go { margin-top: .95rem; }
+.snug .go .btn { min-height: 3.6rem; font-size: 2rem; }
+.tight .lobby-players { margin-top: .45rem; gap: .45rem .55rem; }
+.tight .settings { margin-top: .5rem; padding: .45rem 1.2rem .65rem; }
+.tight .blk { gap: .3rem; }
+.tight .seg button, .tight .tag, .tight .chg { min-height: 2.35rem; }
+.tight .go { margin-top: .75rem; padding-bottom: .4rem; }
+.tight .go .btn { min-height: 3.2rem; font-size: 1.85rem; }
+.crowd .pickers { gap: 0 .6rem; font-size: var(--pk, 1.15rem); }
+.crowd .gains { gap: 0 .9rem; }
+.crowd .gains.many .gain, .crowd .gains .gain { font-size: calc(var(--gn, 1) * 1.05rem); gap: .25rem; }
+.crowd .gains.many .gain .pname, .crowd .gains .gain .pname { font-size: calc(var(--gn, 1) * 1.2rem); }
+.crowd .quick { font-size: 1.1rem; }
+.crowd .answered { padding-right: 10.5rem; }
+.fact.long { max-width: none; font-size: 1.5rem; }
+/* The longest (a fact may be a hundred characters): smaller again, still on the one line. */
+.fact.longer { font-size: 1.3rem; }
+.crowd .fact { margin-bottom: .45rem; font-size: 1.42rem; }
+.crowd .fact.long { font-size: 1.3rem; }
+.crowd .fact.longer { font-size: 1.24rem; }
+/* A full room's guesses: two across, closest first, reading along each row. */
+.crowd .number { gap: 2.4rem; }
+.crowd .guesses { grid-template-columns: repeat(2, auto auto auto); column-gap: 1rem; padding: .4rem 1.3rem; }
+.crowd .guesses li { grid-column: span 3; font-size: var(--g, 1.3rem); padding: .2em 0; }
+.crowd .guesses li:nth-child(2) { border-top: 0; }
+.crowd .guesses li:nth-child(odd):not(.more) { padding-right: 1.2rem; }
+.crowd .guesses .more { grid-column: 1 / -1; }
+.crowd .guesses .off { font-size: .8em; }
+.crowd .who { gap: 0 1.1rem; }
+.crowd .dot { font-size: var(--dot, 1.22rem); }
+
+/* A squarer screen (4:3): the final list and the lobby's sun need a little more care. */
+@media (max-aspect-ratio: 3/2) and (orientation: landscape) {
+  .final .standings, .final .standings:has(.rest li[data-k]:nth-child(8)) { gap: 1.2rem; }
+  /* The screen is narrower for its height: the settings bar and the picker's buttons keep their words whole. */
+  .settings { gap: .8rem; padding-left: .9rem; padding-right: .9rem; }
+  .seg button { width: 3.1rem; }
+  .picker { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .picker-card { padding-left: 1.3rem; padding-right: 1.3rem; }
+  .topics { column-gap: .45rem; }
+  .topics button { padding: 0 .2rem; font-size: 1.12rem; }
+  [data-screen="s-lobby"] .sun { translate: 1.6rem 1.1rem; scale: .7; }
+}
+
+/* ---------- the controls ----------
+   At the foot of the screen. On the right, through a game: Pause, Next and End, three cream
+   buttons the same size, always in view and always live (a press never has to wake them
+   first), in the band under the question that nothing else uses. On the left: sound, music
+   and full screen, smaller, and fainter while nobody touches anything, but never out of reach. */
+.controls, .corner { position: fixed; z-index: 5; display: flex; align-items: center; }
+/* (A dark bar of their own, so that End never sits on the corner rainbow.) */
+.controls { right: 1.9rem; bottom: .9rem; gap: .45rem; padding: .4rem .5rem .52rem; border-radius: 99px; background: var(--bg-deep); }
+.corner { left: 2.6rem; bottom: .8rem; gap: .2rem; opacity: .85; transition: opacity .2s; }
+.corner:hover, .corner:focus-within { opacity: 1; }
+.ctl { border: 0; border-radius: 99px; background: none; color: #D9C29C; min-height: 1.7rem; padding: 0 .7rem; font-size: 1rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.ctl:active { background: var(--surface-hi); }
+@media (hover: hover) { .ctl:hover { background: var(--surface); color: var(--cream); } }
+.controls .ctl { min-width: 6.6rem; min-height: 2.1rem; padding: 0 1rem; background: var(--cream); color: var(--brown); box-shadow: 0 .24rem 0 #B89A78; font-size: 1rem; font-weight: 700; transition: transform .08s, box-shadow .08s; }
+.controls .ctl:active, .controls .ctl.busy { background: var(--cream); transform: translateY(.14rem); box-shadow: 0 .1rem 0 #B89A78; }
+@media (hover: hover) { .controls .ctl:hover { background: #FFF4DC; color: var(--brown); } }
+/* End has to be held: a fill sweeps across it for as long as it is (shared.js marks it
+   'holding' and gives the time), and let go early it says so for a moment, in the same room. */
+.hold { position: relative; isolation: isolate; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.hold::before { content: ""; position: absolute; z-index: -1; inset: 0; background: var(--org); transform: scaleX(var(--fill, 0)); transform-origin: 0 50%; }
+.hold.holding::before { transform: scaleX(1); transition: transform var(--hold, 1.2s) linear; }
+.controls .ctl.hinting { padding: 0 .2rem; font-size: .8rem; letter-spacing: .03em; }
+/* Sound is on but the browser wants a click first: the button asks for one. */
+.ctl.wants, .ctl.wants:hover { background: var(--must); color: var(--brown); }
+/* Fainter during a game while the mouse is still. */
+body.idle.playing .corner { opacity: .5; }
+
+/* Are you sure? A cream card over the screen, asked here rather than in a box of the
+   browser's: it waits for an answer (Enter or a click; Escape or Back for no). */
+.ask-sure { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 1.5rem; background: var(--backdrop); }
+.sure-card { max-width: min(36rem, 100%); padding: 1.7rem 2.2rem 2rem; border-radius: 2.2rem; background: var(--cream); color: var(--brown); box-shadow: 0 .6rem 0 var(--bg-deep); text-align: center; animation: rise .2s both; }
+.sure-card p { margin: 0 0 1.4rem; font-family: var(--display); font-weight: 700; font-size: 2.1rem; line-height: 1.15; text-wrap: balance; overflow-wrap: anywhere; }
+.sure-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.1rem; }
+.sure-actions .btn { flex: 1 1 11rem; max-width: 15rem; min-height: 3.6rem; padding: 0 1.2rem; font-size: 1.55rem; }
+.sure-actions .btn:not(.primary) { background: none; box-shadow: inset 0 0 0 .17rem rgba(43, 22, 12, .45); }
+.sure-actions .btn:not(.primary):active { transform: none; box-shadow: inset 0 0 0 .17rem var(--brown); }
+@media (hover: hover) { .sure-actions .btn:not(.primary):hover { background: rgba(43, 22, 12, .08); } }
+/* Run from the keys, the answer the ring is on is the filled one and the other an outline:
+   the orange of "End game" must not look chosen while the ring is on Cancel. */
+.keys .sure-actions .btn, .keys .sure-actions .btn.primary { background: none; color: var(--brown); box-shadow: inset 0 0 0 .17rem rgba(43, 22, 12, .45); text-shadow: none; }
+.keys .sure-actions .btn:focus, .keys .sure-actions .btn.primary:focus { background: var(--brown); color: var(--cream); box-shadow: 0 .4rem 0 #0E0603; }
+/* Paused, in the corner where a question's clock is. */
+.paused { position: fixed; z-index: 6; top: 1.8rem; right: 3.4rem; margin: 0; padding: .3rem 1.3rem .45rem; border-radius: 99px; background: var(--cream); color: var(--brown); box-shadow: 0 .3rem 0 #B89A78; font-family: var(--display); font-weight: 700; font-size: 1.6rem; line-height: 1.2; transform: rotate(4deg); }
+.offline {
+  position: fixed; z-index: 9; bottom: 1.2rem; left: 57%; transform: translateX(-50%); margin: 0;
+  background: var(--neg); color: var(--brown); padding: .2rem 1.2rem .25rem; border-radius: 99px; font-weight: 700; font-size: 1rem; line-height: 1.25; white-space: nowrap;
+}
+.corner .legal { display: flex; align-items: center; gap: .4rem; margin-left: .5rem; color: var(--faint); font-size: .86rem; }
+.corner .legal a { color: var(--muted); text-decoration: none; padding: .3rem .1rem; }
+@media (hover: hover) { .corner .legal a:hover { color: var(--cream); } }
+.corner .legal a:focus-visible { outline: .2rem solid var(--cream); outline-offset: 2px; }
+
+/* ---------- portrait and small screens ----------
+   A phone, a tablet held upright, or a short landscape window: one column that
+   scrolls if it must, sized off the width, with the controls in a bar along the bottom. */
+@media (orientation: portrait), (max-height: 479px) {
+  html { font-size: clamp(14px, min(3.6vw, 2.1vh), 24px); }
+  body { overflow-x: hidden; overflow-y: auto; }
+  #tv {
+    height: auto; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+    padding: max(1.4rem, env(safe-area-inset-top)) max(1.2rem, env(safe-area-inset-right)) calc(4.6rem + env(safe-area-inset-bottom)) max(1.2rem, env(safe-area-inset-left));
+  }
+  .screen { height: auto; flex: 1 0 auto; }
+  /* Less scenery: the corner arcs small, no sun, no stripes. */
+  .bow-br, [data-screen] .bow-br, body.at-final .bow-br, body.at-many .bow-br { scale: .45; }
+  .bow-tl, [data-screen] .bow-tl, .sun, .stripes { display: none; }
+  .wordmark.big { font-size: 4.2rem; }
+
+  /* Lobby: the way in first, then the players and settings. */
+  .lobby { display: flex; flex-direction: column; gap: 2rem; padding-bottom: 0; }
+  .lobby .wordmark { font-size: 3.6rem; }
+  .set { width: min(100%, 20rem); }
+  .join-how { font-size: 1.05rem; }
+  .code b { width: 3.9rem; height: 4.5rem; border-radius: 1.1rem; font-size: 3.2rem; }
+  .room { padding-top: 0; margin-bottom: 0; }
+  .players-head { flex-wrap: wrap; row-gap: .3rem; }
+  .players-head .give-hint { flex: 1 0 100%; margin-left: 0; }
+  /* The cards two across, as many rows as it takes: the page scrolls. */
+  .lobby-players { flex: none; gap: .5rem; }
+  .howto { grid-template-columns: minmax(0, 1fr); gap: .45rem; }
+  .howto li { font-size: 1rem; }
+  .empty { font-size: 1.2rem; }
+  /* The settings one under the other; the picker is a sheet that scrolls, its topics two across. */
+  .settings { flex-direction: column; align-items: stretch; gap: .8rem; margin-top: 1rem; padding: .9rem 1rem 1.1rem; }
+  .rule { display: none; }
+  .seg button { width: 4.2rem; min-height: 2.7rem; font-size: 1.35rem; }
+  .now { flex-wrap: wrap; }
+  .tag, .chg { min-height: 2.7rem; }
+  .picker { place-items: start center; padding: .8rem; overflow-y: auto; }
+  .picker-card { max-height: none; overflow: visible; padding: 1.1rem 1rem 1.3rem; border-radius: 1.8rem; }
+  .picker-top h2 { font-size: 2.1rem; }
+  .topics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+  .topics.own button { grid-column: 1 / -1; }
+  .topics button { min-height: 2.7rem; font-size: 1.05rem; }
+  .picker-foot { flex-wrap: wrap; }
+  .picker-foot .btn { flex: 1 1 auto; min-height: 3.2rem; }
+  #picker-done { padding: 0 1.5rem; font-size: 1.5rem; }
+  .go { flex-direction: column; align-items: stretch; gap: .8rem; padding: 0; text-align: center; }
+  .go .btn, .snug .go .btn { min-height: 3.6rem; font-size: 1.6rem; padding: 0 1rem; }
+  .hint { font-size: 1rem; }
+
+  /* The title card. */
+  .intro { gap: 1.1rem; }
+  .disc { width: 16rem; height: 16rem; }
+  .intro-n b { font-size: 5rem; }
+  .intro-cat { font-size: 2.7rem; gap: .9rem; }
+  .intro-cat.long { font-size: 2.2rem; }
+  .intro-cat::before, .intro-cat::after { flex: none; min-width: 0; width: 2.4rem; height: 1rem; }
+  .intro-kind { font-size: 1.15rem; }
+  .intro-double { font-size: 1.25rem; }
+
+  /* The question and its answer: one column. */
+  .ask { display: flex; flex-direction: column; }
+  .bar { min-height: 0; align-items: center; margin-bottom: .8rem; }
+  .where { padding-top: 0; }
+  .lab { font-size: .85rem; }
+  .where b { font-size: 1.6rem; }
+  .flip { padding: .4rem .5rem .45rem; gap: .3rem; border-radius: .8rem; }
+  .flip b { width: 2.2rem; height: 3rem; font-size: 2.3rem; border-radius: .4rem; }
+  .ask.held .secs { font-size: 1.05rem; }
+  .question { font-size: 1.7rem; }
+  .question.long { font-size: 1.45rem; }
+  .body { margin: 0; padding: 1.4rem 0; overflow: visible; }
+  .options { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: 1fr; gap: .9rem; flex: none; }
+  /* With names under them the answers are as tall as each needs, not all as tall as the fullest. */
+  .ph-reveal .options { grid-auto-rows: auto; }
+  .opt, .options.long .opt, .right-order .opt { min-height: 3.8rem; padding: .4rem 1.1rem .4rem .7rem; gap: .8rem; border-radius: 1.9rem; font-size: 1.35rem; box-shadow: 0 .35rem 0 var(--o-deep); }
+  /* Wrong answers go dark but keep the edge of their colour, long ones too. */
+  .opt.dim, .options.long .opt.dim { box-shadow: 0 .35rem 0 var(--o-deep); }
+  .opt .letter, .right-order .letter { font-size: 1.1rem; }
+  .opt .burst { width: 5.4rem; height: 5.4rem; margin-top: -2.7rem; left: -.55rem; }
+  /* Who picked an answer goes under it, the width of the pill: beside it there is no room for both. */
+  .opt.picked { flex-wrap: wrap; align-items: flex-start; row-gap: .4rem; padding-bottom: .6rem; }
+  .opt.picked .text { align-self: center; min-height: 0; }
+  .opt.picked .burst { top: 1.83rem; }
+  .pickers { flex: 1 1 100%; max-width: none; margin-left: 0; justify-content: flex-start; font-size: 1rem; }
+  .pickers .pname { text-align: left; }
+  .guess { gap: 1.2rem; }
+  .handset { width: 4rem; height: 6.3rem; }
+  .guess p { font-size: 1.6rem; }
+  .number { flex-direction: column; align-items: flex-start; gap: 1.2rem; }
+  .answer-card { align-self: center; min-width: 0; min-height: 0; max-height: none; width: 12rem; height: 12rem; padding: 0; }
+  .big-answer { font-size: min(4.6rem, 18vw); }
+  .guesses { max-height: none; padding: .4rem 1.1rem; }
+  .guesses li, .crowd .guesses li { font-size: 1.15rem; }
+  .crowd .guesses, .guesses.two { grid-template-columns: auto auto auto; grid-template-rows: none; grid-auto-flow: row; }
+  .guesses.two li, .guesses.few li { grid-column: 1 / -1; font-size: 1.15rem; }
+  .guesses.two li.lead { padding-right: 0; }
+  .guesses.two li.top { border-top: 1px solid var(--line); }
+  .crowd .guesses li:nth-child(2) { border-top: 1px solid var(--line); }
+  .crowd .guesses li:nth-child(odd):not(.more) { padding-right: 0; }
+  .ask { padding-bottom: 0; }
+  .controls { border-radius: 0; }
+  .crowd .answered { padding-right: 0; }
+  .options.names:not(.long) .opt { font-size: 1.35rem; }
+  .guesses .off { font-size: .95rem; }
+  .right-order { grid-template-rows: none; flex: none; gap: .8rem; }
+  .right-order .place { font-size: 1.4rem; }
+  .right-order .note { font-size: 1rem; }
+  .fact, .fact.long, .fact.longer, .crowd .fact, .crowd .fact.long, .crowd .fact.longer { max-width: 40em; margin-bottom: .7rem; font-size: 1.05rem; }
+  .answered { flex-direction: column; align-items: flex-start; gap: .6rem; min-height: 0; padding-right: 0; }
+  .dot, .crowd .dot { font-size: 1.2rem; }
+  .gains .gain, .crowd .gains .gain { font-size: 1rem; }
+  .gains .gain.none, .crowd .gains .gain.none { font-size: 1.8rem; }
+  .gains .gain .pname, .crowd .gains .gain .pname { font-size: 1.15rem; }
+  .tally, .quick { font-size: .95rem; white-space: normal; }
+
+  /* Standings: one column, however many. */
+  .board, .board.final { align-items: stretch; justify-content: flex-start; padding-bottom: 0; }
+  .board-title, .final .board-title { font-size: 2.2rem; margin: .2rem 0 1rem; }
+  .standings, .standings.many { grid-template-columns: auto minmax(0, auto) auto auto auto; justify-content: start; gap: .45rem .6rem; }
+  .standings li[data-k], .standings.many li[data-k], .standings.many li:nth-child(n+9) { grid-column: 1 / -1; grid-row: auto; font-size: 1.1rem; padding: .4rem 1rem .45rem .9rem; }
+  /* A name too long for the row takes a second line, rather than run under its score. */
+  .standings .name, .standings.many .name, .rest .name { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+  .plate .name { white-space: nowrap; overflow-wrap: normal; }
+  .final .standings { flex-direction: column; align-items: center; gap: 1.4rem; }
+  .pods { min-width: 0; min-height: 0; width: 100%; }
+  .pods > ol { width: 100%; justify-content: center; }
+  .bow-half { display: none; }
+  .final .standings li.pod { width: 31%; font-size: 1.1rem; }
+  .final .standings li.pod.winner { width: 36%; font-size: 1.3rem; }
+  .plate { padding: .25rem .6rem .35rem; }
+  .plate .score { font-size: .95rem; }
+  .plate .face, .pod.winner .plate .face { width: 2.8rem; height: 2.8rem; }
+  .board-title small { vertical-align: .3rem; font-size: .85rem; }
+  .plate .burst { width: 6rem; height: 6rem; margin: -3rem 0 0 -3rem; }
+  .col b { font-size: 2.4rem; } .pl-3 .col b { font-size: 2rem; } .col small { font-size: 1rem; }
+  .pl-1 .col { height: 7rem; } .pl-2 .col { height: 5rem; } .pl-3 .col { height: 3.6rem; }
+  .rest { align-self: stretch; }
+  .rest > ol { grid-auto-flow: row; grid-template-rows: none; }
+  .final .standings .rest li[data-k], .final .standings .rest ol.two li[data-k], .final .standings .rest:not(.flat) li[data-k] { font-size: 1.15rem; padding: .2rem 0; }
+  .rest:not(.flat) > ol { grid-template-columns: auto minmax(0, auto) auto auto; justify-content: start; }
+  .rest.flat > ol, .rest.flat > ol.two { grid-template-rows: none; grid-template-columns: minmax(0, 1fr); }
+  .awards { grid-auto-flow: row; justify-content: start; gap: .6rem; margin-top: 1.4rem; }
+  .awards li:only-child { min-width: 0; justify-content: start; }
+  .end-actions { margin-top: 1.6rem; flex-wrap: wrap; }
+  .end-actions .btn { flex: 1; min-height: 3.2rem; }
+
+  /* The controls: a bar along the bottom, always there, as there's no mouse to wake them. */
+  .controls, .corner, body.idle.playing .corner {
+    opacity: 1; bottom: 0; background: var(--bg-deep);
+    padding: .6rem max(.8rem, env(safe-area-inset-right)) calc(.75rem + env(safe-area-inset-bottom)) max(.8rem, env(safe-area-inset-left));
+  }
+  .corner, .controls { left: 0; right: 0; }
+  /* Through a game the bar is Pause, Next and End, a third of it each. */
+  .controls { gap: .6rem; }
+  body.playing .corner { display: none; }
+  .ctl { font-size: .9rem; padding: 0 1rem; min-height: 2.6rem; background: var(--surface); }
+  /* Sound, music and full screen share the bar's one line, a third each. */
+  .corner .ctl { flex: 1 1 0; min-width: 0; padding: 0 .3rem; font-size: .8rem; letter-spacing: .03em; }
+  .controls .ctl { flex: 1 1 0; min-width: 0; min-height: 2.8rem; font-size: 1.05rem; }
+  .controls .ctl.hinting { font-size: .82rem; }
+  .ask-sure { padding: 1rem; }
+  .sure-card { padding: 1.4rem 1.2rem 1.6rem; }
+  .sure-card p { font-size: 1.6rem; }
+  .sure-actions .btn { min-height: 3.2rem; font-size: 1.3rem; }
+  /* In the lobby the bar has a second line, for the small print. */
+  .corner { flex-wrap: wrap; justify-content: center; gap: .3rem .5rem; }
+  .corner .legal { flex: 1 0 100%; justify-content: center; margin: 0; }
+  [data-screen="s-lobby"] #tv { padding-bottom: calc(6.6rem + env(safe-area-inset-bottom)); }
+  /* Reconnecting is said just over the bar, clear of what the screen is showing at its top. */
+  .offline { top: auto; left: 50%; bottom: calc(4.4rem + env(safe-area-inset-bottom)); font-size: .95rem; }
+  .paused { top: max(1rem, env(safe-area-inset-top)); right: max(.8rem, env(safe-area-inset-right)); font-size: 1.2rem; }
+}
+
+/* Short landscape screens (a phone on its side) keep the lobby in two columns. */
+@media (orientation: landscape) and (max-height: 479px) {
+  .lobby { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 2rem; align-items: start; }
+  .set { width: min(100%, 15rem); }
+  .options { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
