@@ -1,0 +1,107 @@
+/* What the TV and the phones share. The look is a seventies television quiz:
+   chocolate brown, cream, mustard, burnt orange and rust; Caprasimo for anything
+   said loudly, Outfit for the rest. Both ship with the pages (fonts/, SIL OFL). */
+@font-face {
+  font-family: "Caprasimo";
+  src: url("fonts/caprasimo-400.woff2") format("woff2");
+  /* One weight, declared for the whole range: asked for bold, the fallbacks are bold
+     and this is never faked bolder. */
+  font-weight: 400 900;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Outfit";
+  src: url("fonts/outfit-var.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+:root {
+  --bg: #2B160C;
+  --bg-deep: #1C0D06;
+  --surface: #40230F;
+  --surface-hi: #55301A;
+  --cream: #F7E8C9;
+  --ink: #F7E8C9;
+  --muted: #CDB28C;
+  --faint: #A98C69;
+  --line: rgba(247, 232, 201, .16);
+  --line-strong: rgba(247, 232, 201, .4);
+  --brown: #2B160C;
+  --must: #F0B12B;
+  --must-deep: #B97A12;
+  --org: #E9682A;
+  --rust: #B93B1C;
+  --rust-deep: #6E2410;
+  --accent: #F0B12B;
+  --pos: #F0B12B;
+  --neg: #FF8D6B;
+  --backdrop: rgba(18, 8, 3, .72);
+  /* The four answers: tomato, teal green, mustard, denim blue. Each has a deeper
+     shade for its edge and its letter, and says what colour of text sits on it. */
+  --a: #E2542C; --a-deep: #8F2C12; --a-ink: #B93B1C;
+  --b: #2C9686; --b-deep: #145A50; --b-ink: #17695D;
+  --c: #F0B12B; --c-deep: #B97A12; --c-ink: #A56A0A;
+  --d: #4479B8; --d-deep: #224A7C; --d-ink: #2A5791;
+  --font: "Outfit", "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
+  --display: "Caprasimo", "Cooper Black", "Cooper Std", "Bookman Old Style", Georgia, "Times New Roman", serif;
+  color-scheme: dark;
+}
+
+/* Player colours, by the number the room hands out. All light enough for the brown. */
+.p0 { --p: #FF7D55; } .p1 { --p: #7DD3C2; } .p2 { --p: #F6C445; } .p3 { --p: #9CC5F2; }
+.p4 { --p: #F5A7BA; } .p5 { --p: #BDD25C; } .p6 { --p: #F79A3E; } .p7 { --p: #5CC5D9; }
+.p8 { --p: #D9C39A; } .p9 { --p: #86D99A; } .p10 { --p: #F2A48C; } .p11 { --p: #C9BF5A; }
+.p12 { --p: #F4CFA0; } .p13 { --p: #4FBFB0; } .p14 { --p: #C3A6EA; } .p15 { --p: #EDE6D8; }
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+[hidden] { display: none !important; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* The four answers. */
+.opt-a { --o: var(--a); --o-deep: var(--a-deep); --o-ink: var(--a-ink); --on: var(--cream); }
+.opt-b { --o: var(--b); --o-deep: var(--b-deep); --o-ink: var(--b-ink); --on: var(--cream); }
+.opt-c { --o: var(--c); --o-deep: var(--c-deep); --o-ink: var(--c-ink); --on: var(--brown); }
+.opt-d { --o: var(--d); --o-deep: var(--d-deep); --o-ink: var(--d-ink); --on: var(--cream); }
+
+/* An answer's letter, on a cream daisy. */
+.letter {
+  flex: none; display: grid; place-items: center; width: 2.6em; height: 2.6em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-42 -42 84 84' fill='%23F7E8C9'%3E%3Ccircle cy='-25' r='14.5'/%3E%3Ccircle cy='25' r='14.5'/%3E%3Ccircle cx='-25' r='14.5'/%3E%3Ccircle cx='25' r='14.5'/%3E%3Ccircle cx='17.7' cy='-17.7' r='14.5'/%3E%3Ccircle cx='-17.7' cy='-17.7' r='14.5'/%3E%3Ccircle cx='17.7' cy='17.7' r='14.5'/%3E%3Ccircle cx='-17.7' cy='17.7' r='14.5'/%3E%3Ccircle r='26'/%3E%3C/svg%3E") center / contain no-repeat;
+  color: var(--o-ink); font-family: var(--display); font-weight: 700; line-height: 1;
+}
+
+/* A player's name, in their colour. */
+.pname { color: var(--p); font-weight: 600; white-space: nowrap; }
+
+/* A player's character, beside their name and as tall as its line. */
+.face { display: inline-block; flex: none; width: 1.2em; height: 1.2em; vertical-align: -.26em; }
+.face svg { display: block; width: 100%; height: 100%; }
+
+/* The time left: speed stripes that drain. */
+.timer { height: 12px; background: var(--bg-deep); border-radius: 6px; overflow: hidden; }
+.timer i {
+  display: block; height: 100%; width: 100%; border-radius: inherit; transform-origin: left;
+  background: linear-gradient(var(--cream) 0 33.4%, var(--must) 33.4% 66.7%, var(--org) 66.7%);
+}
+.timer.low i { background: linear-gradient(var(--must) 0 33.4%, var(--org) 33.4% 66.7%, var(--rust) 66.7%); }
+
+/* The name of the game. */
+.wordmark {
+  font-family: var(--display); font-weight: 700; letter-spacing: -.01em; line-height: 1; color: var(--cream);
+  text-shadow: .03em .03em 0 var(--org), .06em .06em 0 var(--rust), .09em .09em 0 var(--rust-deep);
+}
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
